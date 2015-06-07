@@ -52,13 +52,12 @@ class Archiveless {
 	 */
 	public function setup() {
 		add_action( 'init', array( $this, 'register_post_status' ) );
+		add_filter( 'wp_insert_post_data', array( $this, 'wp_insert_post_data' ), 10, 2 );
+		add_action( 'save_post', array( $this, 'save_post' ) );
 
 		if ( is_admin() ) {
 			add_action( 'post_submitbox_misc_actions', array( $this, 'add_ui' ) );
 			add_action( 'add_meta_boxes', array( $this, 'fool_edit_form' ) );
-
-			add_filter( 'wp_insert_post_data', array( $this, 'wp_insert_post_data' ), 10, 2 );
-			add_action( 'save_post', array( $this, 'save_post' ) );
 		} else {
 			// add_action( 'pre_get_posts', array( $this, 'pre_get_posts' ) );
 			add_filter( 'posts_where', array( $this, 'posts_where' ), 10, 2 );
@@ -133,7 +132,7 @@ class Archiveless {
 	 */
 	public function save_post( $post_id ) {
 		if ( isset( $_POST[ $this->meta_key ] ) ) {
-			update_post_meta( $post_id, $this->meta_key, '1' === $_POST[ $this->meta_key ] ? '1' : '0' );
+			update_post_meta( $post_id, $this->meta_key, intval( $_POST[ $this->meta_key ] ) );
 		}
 	}
 
@@ -166,8 +165,4 @@ class Archiveless {
 		return $where;
 	}
 }
-
-function Archiveless() {
-	return Archiveless::instance();
-}
-add_action( 'after_setup_theme', 'Archiveless' );
+add_action( 'after_setup_theme', array( 'Archiveless', 'instance' ) );
