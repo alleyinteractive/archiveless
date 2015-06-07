@@ -35,10 +35,6 @@ class Archiveless {
 		/* Don't do anything, needs to be initialized via instance() method */
 	}
 
-	public function __clone() { wp_die( "Please don't __clone Archiveless" ); }
-
-	public function __wakeup() { wp_die( "Please don't __wakeup Archiveless" ); }
-
 	public static function instance() {
 		if ( ! isset( self::$instance ) ) {
 			self::$instance = new Archiveless;
