@@ -72,7 +72,7 @@ class Archiveless {
 		register_post_status( $this->status, apply_filters( 'archiveless_post_status_args', array(
 			'label'                     => __( 'Hidden from Archives', 'archiveless' ),
 			'label_count'               => _n_noop( 'Hidden from Archives <span class="count">(%s)</span>', 'Hidden from Archives <span class="count">(%s)</span>', 'archiveless' ),
-			'exclude_from_search'       => true,
+			'exclude_from_search'       => ! ( defined( 'WP_CLI' ) && WP_CLI ),
 			'public'                    => true,
 			'publicly_queryable'        => true,
 			'show_in_admin_status_list' => true,
