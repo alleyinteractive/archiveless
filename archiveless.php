@@ -48,14 +48,16 @@ class Archiveless {
 	 */
 	public function setup() {
 		add_action( 'init', array( $this, 'register_post_status' ) );
+		add_action( 'init', array( $this, 'register_post_meta' ) );
+
 		add_filter( 'wp_insert_post_data', array( $this, 'wp_insert_post_data' ), 10, 2 );
 		add_action( 'save_post', array( $this, 'save_post' ) );
 
 		if ( is_admin() ) {
 			add_action( 'post_submitbox_misc_actions', array( $this, 'add_ui' ) );
 			add_action( 'add_meta_boxes', array( $this, 'fool_edit_form' ) );
+			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 		} else {
-			// add_action( 'pre_get_posts', array( $this, 'pre_get_posts' ) );
 			add_filter( 'posts_where', array( $this, 'posts_where' ), 10, 2 );
 		}
 	}
@@ -69,15 +71,37 @@ class Archiveless {
 		 *
 		 * @see register_post_status().
 		 */
-		register_post_status( $this->status, apply_filters( 'archiveless_post_status_args', array(
-			'label'                     => __( 'Hidden from Archives', 'archiveless' ),
-			'label_count'               => _n_noop( 'Hidden from Archives <span class="count">(%s)</span>', 'Hidden from Archives <span class="count">(%s)</span>', 'archiveless' ),
-			'exclude_from_search'       => true,
-			'public'                    => true,
-			'publicly_queryable'        => true,
-			'show_in_admin_status_list' => true,
-			'show_in_admin_all_list'    => true,
-		) ) );
+		register_post_status(
+			$this->status,
+			apply_filters(
+				'archiveless_post_status_args',
+				[
+					'label'                     => __( 'Hidden from Archives', 'archiveless' ),
+					'label_count'               => _n_noop( 'Hidden from Archives <span class="count">(%s)</span>', 'Hidden from Archives <span class="count">(%s)</span>', 'archiveless' ),
+					'exclude_from_search'       => true,
+					'public'                    => true,
+					'publicly_queryable'        => true,
+					'show_in_admin_status_list' => true,
+					'show_in_admin_all_list'    => true,
+				]
+			)
+		);
+	}
+
+	/**
+	 * Register the custom post meta.
+	 */
+	public function register_post_meta() {
+		register_post_meta(
+			'',
+			$this->meta_key,
+			[
+				'type'              => 'boolean',
+				'show_in_rest'      => true,
+				'sanitize_callback' => 'wp_validate_boolean',
+				'single'            => true,
+			]
+		);
 	}
 
 	/**
@@ -108,7 +132,8 @@ class Archiveless {
 	 * @return array $data, potentially with a new status.
 	 */
 	public function wp_insert_post_data( $data, $postarr ) {
-		if ( 'publish' == $data['post_status'] ) {
+		if ( 'publish' === $data['post_status'] ) {
+			// phpcs:disable WordPress.Security.NonceVerification.NoNonceVerification
 			if ( isset( $_POST[ $this->meta_key ] ) ) {
 				if ( '1' === $_POST[ $this->meta_key ] ) {
 					$data['post_status'] = $this->status;
@@ -127,6 +152,7 @@ class Archiveless {
 	 * @param  int $post_id Post ID.
 	 */
 	public function save_post( $post_id ) {
+		// phpcs:disable WordPress.Security.NonceVerification.NoNonceVerification
 		if ( isset( $_POST[ $this->meta_key ] ) ) {
 			update_post_meta( $post_id, $this->meta_key, intval( $_POST[ $this->meta_key ] ) );
 		}
@@ -139,7 +165,7 @@ class Archiveless {
 	 */
 	public function fool_edit_form() {
 		global $post;
-		if ( $this->status == $post->post_status ) {
+		if ( $this->status === $post->post_status ) {
 			$post->post_status = 'publish';
 		}
 	}
@@ -159,6 +185,41 @@ class Archiveless {
 		}
 
 		return $where;
+	}
+
+	/**
+	 * Enqueue general-purpose scripts in the admin.
+	 */
+	public function admin_enqueue_scripts() {
+		wp_enqueue_script(
+			'wp-starter-plugin-plugin-sidebar',
+			plugins_url( 'build/pluginSidebar.js', __FILE__ ),
+			[ 'wp-i18n', 'wp-edit-post' ],
+			filemtime( plugin_dir_path( __FILE__ ) . 'build/pluginSidebar.js' ),
+			true
+		);
+		$this->inline_locale_data( 'wp-starter-plugin-plugin-sidebar' );
+	}
+
+	/**
+	 * Creates a new Jed instance with specified locale data configuration.
+	 *
+	 * @param string $to_handle The script handle to attach the inline script to.
+	 */
+	public function inline_locale_data( string $to_handle ) {
+		// Define locale data for Jed.
+		$locale_data = [
+			'' => [
+				'domain' => 'wp-starter-plugin',
+				'lang'   => is_admin() ? get_user_locale() : get_locale(),
+			],
+		];
+
+		// Pass the Jed configuration to the admin to properly register i18n.
+		wp_add_inline_script(
+			$to_handle,
+			'wp.i18n.setLocaleData( ' . wp_json_encode( $locale_data ) . ", 'wp-starter-plugin' );"
+		);
 	}
 }
 add_action( 'after_setup_theme', array( 'Archiveless', 'instance' ) );
