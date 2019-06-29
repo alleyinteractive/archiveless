@@ -180,8 +180,17 @@ class Archiveless {
 	 */
 	public function posts_where( $where, $query ) {
 		global $wpdb;
-		if ( $query->is_main_query() && ! $query->is_singular() && false !== strpos( $where, " OR {$wpdb->posts}.post_status = '{$this->status}'" ) ) {
-			$where = str_replace( " OR {$wpdb->posts}.post_status = '{$this->status}'", '', $where );
+
+		if (
+			$query->is_main_query() &&
+			! $query->is_singular() &&
+			false !== strpos( $where, " OR {$wpdb->posts}.post_status = '{$this->status}'" )
+		) {
+			$where = str_replace(
+				" OR {$wpdb->posts}.post_status = '{$this->status}'",
+				'',
+				$where
+			);
 		}
 
 		return $where;
