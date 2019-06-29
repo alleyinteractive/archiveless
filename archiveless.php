@@ -27,9 +27,9 @@ class Archiveless {
 
 	private static $instance;
 
-	public $status = 'archiveless';
+	public static $status = 'archiveless';
 
-	protected $meta_key = 'archiveless';
+	protected static $meta_key = 'archiveless';
 
 	private function __construct() {
 		/* Don't do anything, needs to be initialized via instance() method */
@@ -72,7 +72,7 @@ class Archiveless {
 		 * @see register_post_status().
 		 */
 		register_post_status(
-			$this->status,
+			self::$status,
 			apply_filters(
 				'archiveless_post_status_args',
 				[
@@ -94,7 +94,7 @@ class Archiveless {
 	public function register_post_meta() {
 		register_post_meta(
 			'',
-			$this->meta_key,
+			self::$meta_key,
 			[
 				'type'              => 'boolean',
 				'show_in_rest'      => true,
@@ -112,8 +112,8 @@ class Archiveless {
 		global $post;
 		?>
 		<div class="misc-pub-section">
-			<input type="hidden" name="<?php echo esc_attr( $this->meta_key ) ?>" value="0" />
-			<label><input type="checkbox" name="<?php echo esc_attr( $this->meta_key ) ?>" value="1" <?php checked( '1', get_post_meta( $post->ID, $this->meta_key, true ) ) ?> /> <?php esc_html_e( 'Hide from Archives', 'archiveless' ) ?></label>
+			<input type="hidden" name="<?php echo esc_attr( self::$meta_key ) ?>" value="0" />
+			<label><input type="checkbox" name="<?php echo esc_attr( self::$meta_key ) ?>" value="1" <?php checked( '1', get_post_meta( $post->ID, self::$meta_key, true ) ) ?> /> <?php esc_html_e( 'Hide from Archives', 'archiveless' ) ?></label>
 		</div>
 		<?php
 	}
@@ -134,12 +134,12 @@ class Archiveless {
 	public function wp_insert_post_data( $data, $postarr ) {
 		if ( 'publish' === $data['post_status'] ) {
 			// phpcs:disable WordPress.Security.NonceVerification.NoNonceVerification
-			if ( isset( $_POST[ $this->meta_key ] ) ) {
-				if ( '1' === $_POST[ $this->meta_key ] ) {
-					$data['post_status'] = $this->status;
+			if ( isset( $_POST[ self::$meta_key ] ) ) {
+				if ( '1' === $_POST[ self::$meta_key ] ) {
+					$data['post_status'] = self::$status;
 				}
-			} elseif ( ! empty( $postarr['ID'] ) && '1' === get_post_meta( $postarr['ID'], $this->meta_key, true ) ) {
-				$data['post_status'] = $this->status;
+			} elseif ( ! empty( $postarr['ID'] ) && '1' === get_post_meta( $postarr['ID'], self::$meta_key, true ) ) {
+				$data['post_status'] = self::$status;
 			}
 		}
 
@@ -153,8 +153,8 @@ class Archiveless {
 	 */
 	public function save_post( $post_id ) {
 		// phpcs:disable WordPress.Security.NonceVerification.NoNonceVerification
-		if ( isset( $_POST[ $this->meta_key ] ) ) {
-			update_post_meta( $post_id, $this->meta_key, intval( $_POST[ $this->meta_key ] ) );
+		if ( isset( $_POST[ self::$meta_key ] ) ) {
+			update_post_meta( $post_id, self::$meta_key, intval( $_POST[ self::$meta_key ] ) );
 		}
 	}
 
@@ -165,7 +165,7 @@ class Archiveless {
 	 */
 	public function fool_edit_form() {
 		global $post;
-		if ( $this->status === $post->post_status ) {
+		if ( self::$status === $post->post_status ) {
 			$post->post_status = 'publish';
 		}
 	}
@@ -181,13 +181,15 @@ class Archiveless {
 	public function posts_where( $where, $query ) {
 		global $wpdb;
 
+		$archiveless_status = self::$status;
+
 		if (
 			$query->is_main_query() &&
 			! $query->is_singular() &&
-			false !== strpos( $where, " OR {$wpdb->posts}.post_status = '{$this->status}'" )
+			false !== strpos( $where, " OR {$wpdb->posts}.post_status = '{$archiveless_status}'" )
 		) {
 			$where = str_replace(
-				" OR {$wpdb->posts}.post_status = '{$this->status}'",
+				" OR {$wpdb->posts}.post_status = '{$archiveless_status}'",
 				'',
 				$where
 			);
