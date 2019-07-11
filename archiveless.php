@@ -44,6 +44,29 @@ class Archiveless {
 	}
 
 	/**
+	 * Determine if gutenberg editor exists.
+	 *
+	 * @return boolean
+	 */
+	public function is_block_editor() {
+		$is_block_editor = false;
+
+		// Do we have access to current screen?
+		if ( did_action( 'current_screen' ) ) {
+			$current_screen = get_current_screen();
+			$is_block_editor = $current_screen instanceof WP_Screen ? $current_screen->is_block_editor : false;
+		}
+
+		// Fallback if we don't have access to `current_screen`.
+		if ( ! $is_block_editor ) {
+			$post_id = false !== get_the_ID() ? get_the_ID() : isset( $GLOBALS['post_ID'] ) ? $GLOBALS['post_ID'] : null;
+			$is_block_editor = use_block_editor_for_post( $post_id );
+		}
+
+		return $is_block_editor;
+	}
+
+	/**
 	 * Register all actions and filters.
 	 */
 	public function setup() {
@@ -202,14 +225,18 @@ class Archiveless {
 	 * Enqueue general-purpose scripts in the admin.
 	 */
 	public function admin_enqueue_scripts() {
-		wp_enqueue_script(
-			'wp-starter-plugin-plugin-sidebar',
-			plugins_url( 'build/pluginSidebar.js', __FILE__ ),
-			[ 'wp-i18n', 'wp-edit-post' ],
-			filemtime( plugin_dir_path( __FILE__ ) . 'build/pluginSidebar.js' ),
-			true
-		);
-		$this->inline_locale_data( 'wp-starter-plugin-plugin-sidebar' );
+
+		// Only enqueue for Block Editor pages.
+		if ( $this->is_block_editor() ) {
+			wp_enqueue_script(
+				'wp-starter-plugin-plugin-sidebar',
+				plugins_url( 'build/pluginSidebar.js', __FILE__ ),
+				[ 'wp-i18n', 'wp-edit-post' ],
+				filemtime( plugin_dir_path( __FILE__ ) . 'build/pluginSidebar.js' ),
+				true
+			);
+			$this->inline_locale_data( 'wp-starter-plugin-plugin-sidebar' );
+		}
 	}
 
 	/**
