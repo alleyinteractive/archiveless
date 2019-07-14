@@ -63,15 +63,9 @@ class Archiveless {
 		$is_block_editor = false;
 
 		// Do we have access to current screen?
-		if ( did_action( 'current_screen' ) ) {
+		if ( did_action( 'current_screen' ) && is_admin() ) {
 			$current_screen  = get_current_screen();
 			$is_block_editor = $current_screen instanceof WP_Screen ? $current_screen->is_block_editor : false;
-		}
-
-		// Fallback if we don't have access to `current_screen`.
-		if ( ! $is_block_editor ) {
-			$post_id         = false !== get_the_ID() ? get_the_ID() : isset( $GLOBALS['post_ID'] ) ? $GLOBALS['post_ID'] : null;
-			$is_block_editor = use_block_editor_for_post( $post_id );
 		}
 
 		return $is_block_editor;
