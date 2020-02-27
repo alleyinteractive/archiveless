@@ -325,8 +325,6 @@ class Archiveless {
 	public function no_index() {
 		global $post;
 
-		var_dump( $post );
-
 		if ( '1' === get_post_meta( $post->ID, self::$meta_key, true ) ) {
 			echo '<meta name="robots" content="noindex,nofollow" />';
 		}
