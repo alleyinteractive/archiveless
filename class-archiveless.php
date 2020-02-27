@@ -79,7 +79,15 @@ class Archiveless {
 		add_action( 'init', array( $this, 'register_post_meta' ) );
 
 		add_filter( 'wp_insert_post_data', array( $this, 'wp_insert_post_data' ), 10, 2 );
+
+		// Set for all gutenberg post types.
+		// Should only fire if gutenberg is enabled.
+		foreach ( get_post_types() as $allowed_post_type ) {
+			add_action( 'rest_pre_insert_' . $allowed_post_type, array( $this, 'gutenberg_insert_post_data' ), 10, 2 );
+		}
+
 		add_action( 'save_post', array( $this, 'save_post' ) );
+		add_action( 'wp_head', array( $this, 'no_index' ) );
 
 		if ( is_admin() ) {
 			add_action( 'post_submitbox_misc_actions', array( $this, 'add_ui' ) );
@@ -175,6 +183,52 @@ class Archiveless {
 	}
 
 	/**
+	 * Set the custom post status when post data is being inserted.
+	 *
+	 * WordPress, unfortunately, doesn't provide a great way to _manage_ custom
+	 * post statuses. While we can register and use them just fine, there are
+	 * areas of the admin where statuses are hard-coded. This method is part of
+	 * this plugin's trickery to provide a seamless integration.
+	 *
+	 * @param  object $prepared_post Post data. Arrays are expected to be escaped, objects are not. Default array.
+	 * @return array $data Post data, potentially with a new status.
+	 */
+	public function gutenberg_insert_post_data( $prepared_post ) {
+		// Get prepared Post id.
+		$post_id = $prepared_post->ID;
+
+		// If autosaving or is revision, bail.
+		if (
+			defined( 'DOING_AUTOSAVE' )
+			&& DOING_AUTOSAVE
+			&& ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) )
+		) {
+			return;
+		}
+
+		// Get post object for updating.
+		$post_object = get_post( $post_id );
+
+		// If the post status is published.
+		// Elseif the post status is 'archiveless'.
+		if ( 'publish' === $post_object->post_status ) {
+			// If we have a post id and the value of the archiveless is ''.
+			// If empty assume checking field. Rest at a delay from Classic.
+			if ( ! empty( $post_id ) && '1' !== get_post_meta( $post_id, self::$meta_key, true ) ) {
+				$post_object->post_status = self::$status;
+			}
+		} elseif ( self::$status === $post_object->post_status ) {
+			$post_object->post_status = 'publish';
+		}
+
+		// Update postdata.
+		wp_update_post( $post_object );
+
+		// Return $prepared post.
+		return $prepared_post;
+	}
+
+	/**
 	 * Store the value of the "Hide form Archives" checkbox to post meta.
 	 *
 	 * @param  int $post_id Post ID.
@@ -263,6 +317,17 @@ class Archiveless {
 			$to_handle,
 			'wp.i18n.setLocaleData( ' . wp_json_encode( $locale_data ) . ", 'wp-starter-plugin' );"
 		);
+	}
+
+	/**
+	 * Return robots meta if archiveless.
+	 */
+	public function no_index() {
+		global $post;
+
+		if ( '1' === get_post_meta( $post->ID, self::$meta_key, true ) ) {
+			echo '<meta name="robots" content="noindex,nofollow" />';
+		}
 	}
 }
 add_action( 'after_setup_theme', array( 'Archiveless', 'instance' ) );
