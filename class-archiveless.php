@@ -191,7 +191,7 @@ class Archiveless {
 	 * this plugin's trickery to provide a seamless integration.
 	 *
 	 * @param  object $prepared_post Post data. Arrays are expected to be escaped, objects are not. Default array.
-	 * @return array $data, potentially with a new status.
+	 * @return array $data Post data, potentially with a new status.
 	 */
 	public function gutenberg_insert_post_data( $prepared_post ) {
 		// Get prepared Post id.
