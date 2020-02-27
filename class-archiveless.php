@@ -87,6 +87,7 @@ class Archiveless {
 		}
 
 		add_action( 'save_post', array( $this, 'save_post' ) );
+		add_action( 'wp_head', array( $this, 'no_index' ) );
 
 		if ( is_admin() ) {
 			add_action( 'post_submitbox_misc_actions', array( $this, 'add_ui' ) );
@@ -189,12 +190,10 @@ class Archiveless {
 	 * areas of the Admin where statuses are hard-coded. This method is part of
 	 * this plugin's trickery to provide a seamless integration.
 	 *
-	 * @param  array $data Slashed post data to be inserted into the database.
-	 * @param  array $postarr Raw post data used to generate `$data`. This
-	 *                        contains, amongst other things, the post ID.
+	 * @param  object $prepared_post Post data. Arrays are expected to be escaped, objects are not. Default array.
 	 * @return array $data, potentially with a new status.
 	 */
-	public function gutenberg_insert_post_data( $prepared_post) {
+	public function gutenberg_insert_post_data( $prepared_post ) {
 		// Get prepared Post id.
 		$post_id = $prepared_post->ID;
 
@@ -318,6 +317,19 @@ class Archiveless {
 			$to_handle,
 			'wp.i18n.setLocaleData( ' . wp_json_encode( $locale_data ) . ", 'wp-starter-plugin' );"
 		);
+	}
+
+	/**
+	 * Return robots meta if archiveless.
+	 */
+	public function no_index() {
+		global $post;
+
+		var_dump( $post );
+
+		if ( '1' === get_post_meta( $post->ID, self::$meta_key, true ) ) {
+			echo '<meta name="robots" content="noindex,nofollow" />';
+		}
 	}
 }
 add_action( 'after_setup_theme', array( 'Archiveless', 'instance' ) );
