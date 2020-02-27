@@ -187,7 +187,7 @@ class Archiveless {
 	 *
 	 * WordPress, unfortunately, doesn't provide a great way to _manage_ custom
 	 * post statuses. While we can register and use them just fine, there are
-	 * areas of the Admin where statuses are hard-coded. This method is part of
+	 * areas of the admin where statuses are hard-coded. This method is part of
 	 * this plugin's trickery to provide a seamless integration.
 	 *
 	 * @param  object $prepared_post Post data. Arrays are expected to be escaped, objects are not. Default array.
