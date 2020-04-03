@@ -190,14 +190,16 @@ class Archiveless {
 	 * areas of the admin where statuses are hard-coded. This method is part of
 	 * this plugin's trickery to provide a seamless integration.
 	 *
-	 * @param  object $prepared_post Post data. Arrays are expected to be escaped, objects are not. Default array.
-	 * @return array $data Post data, potentially with a new status.
+	 * @param object $prepared_post Post data. Arrays are expected to be escaped, objects are not. Default array.
 	 */
 	public function gutenberg_insert_post_data( $prepared_post ) {
-		// Get prepared Post id.
+		// Try to get prepared post ID.
+		if ( empty( $prepared_post->ID ) ) {
+			return;
+		}
 		$post_id = $prepared_post->ID;
 
-		// If autosaving or is revision, bail.
+		// If we are autosaving or the current post is a revision, bail.
 		if (
 			defined( 'DOING_AUTOSAVE' )
 			&& DOING_AUTOSAVE
@@ -206,26 +208,28 @@ class Archiveless {
 			return;
 		}
 
-		// Get post object for updating.
+		// Try to get the post object.
 		$post_object = get_post( $post_id );
+		if ( empty( $post_object->post_status ) ) {
+			return;
+		}
 
-		// If the post status is published.
-		// Elseif the post status is 'archiveless'.
-		if ( 'publish' === $post_object->post_status ) {
-			// If we have a post id and the value of the archiveless is ''.
-			// If empty assume checking field. Rest at a delay from Classic.
-			if ( ! empty( $post_id ) && '1' === get_post_meta( $post_id, self::$meta_key, true ) ) {
-				$post_object->post_status = self::$status;
-			}
-		} elseif ( self::$status === $post_object->post_status ) {
-			$post_object->post_status = 'publish';
+		// Fork based on post status.
+		switch ( $post_object->post_status ) {
+			case 'publish':
+				if ( 1 === (int) get_post_meta( $post_id, self::$meta_key, true ) ) {
+					$post_object->post_status = self::$status;
+				}
+				break;
+			case self::$status:
+				$post_object->post_status = 'publish';
+				break;
+			default:
+				return;
 		}
 
 		// Update postdata.
 		wp_update_post( $post_object );
-
-		// Return $prepared post.
-		return $prepared_post;
 	}
 
 	/**
