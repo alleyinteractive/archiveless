@@ -214,7 +214,7 @@ class Archiveless {
 		if ( 'publish' === $post_object->post_status ) {
 			// If we have a post id and the value of the archiveless is ''.
 			// If empty assume checking field. Rest at a delay from Classic.
-			if ( ! empty( $post_id ) && '1' !== get_post_meta( $post_id, self::$meta_key, true ) ) {
+			if ( ! empty( $post_id ) && '1' === get_post_meta( $post_id, self::$meta_key, true ) ) {
 				$post_object->post_status = self::$status;
 			}
 		} elseif ( self::$status === $post_object->post_status ) {
