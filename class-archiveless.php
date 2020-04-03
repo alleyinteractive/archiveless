@@ -83,7 +83,7 @@ class Archiveless {
 		// Set for all gutenberg post types.
 		// Should only fire if gutenberg is enabled.
 		foreach ( get_post_types() as $allowed_post_type ) {
-			add_action( 'rest_pre_insert_' . $allowed_post_type, array( $this, 'gutenberg_insert_post_data' ), 10, 2 );
+			add_filter( 'rest_pre_insert_' . $allowed_post_type, array( $this, 'gutenberg_insert_post_data' ) );
 		}
 
 		add_action( 'save_post', array( $this, 'save_post' ) );
@@ -190,12 +190,13 @@ class Archiveless {
 	 * areas of the admin where statuses are hard-coded. This method is part of
 	 * this plugin's trickery to provide a seamless integration.
 	 *
-	 * @param object $prepared_post Post data. Arrays are expected to be escaped, objects are not. Default array.
+	 * @param stdClass $prepared_post Post data. Arrays are expected to be escaped, objects are not. Default array.
+	 * @return stdClass The updated prepared_post.
 	 */
 	public function gutenberg_insert_post_data( $prepared_post ) {
 		// Try to get prepared post ID.
 		if ( empty( $prepared_post->ID ) ) {
-			return;
+			return $prepared_post;
 		}
 		$post_id = $prepared_post->ID;
 
@@ -205,31 +206,36 @@ class Archiveless {
 			&& DOING_AUTOSAVE
 			&& ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) )
 		) {
-			return;
+			return $prepared_post;
 		}
 
 		// Try to get the post object.
 		$post_object = get_post( $post_id );
 		if ( empty( $post_object->post_status ) ) {
-			return;
+			return $prepared_post;
 		}
 
-		// Fork based on post status.
-		switch ( $post_object->post_status ) {
-			case 'publish':
-				if ( 1 === (int) get_post_meta( $post_id, self::$meta_key, true ) ) {
-					$post_object->post_status = self::$status;
-				}
-				break;
-			case self::$status:
-				$post_object->post_status = 'publish';
-				break;
-			default:
-				return;
+		// Get the current value of the archiveless post meta and the current status, and switch if necessary.
+		// TODO: What happens if this value is set via the sidebar? Is it off-by-one?
+		$is_archiveless = 1 === (int) get_post_meta( $post_id, self::$meta_key, true );
+		if ( $is_archiveless && 'publish' === $post_object->post_status ) {
+			// Archiveless was requested, but the post's status is currently publish, so we need to change it.
+			$post_object->post_status = self::$status;
+		} elseif ( ! $is_archiveless && self::$status === $post_object->post_status ) {
+			// Archiveless was turned off, so we need to set the post status back to publish.
+			$post_object->post_status = 'publish';
+		} else {
+			// No change, so bail early.
+			return $prepared_post;
 		}
 
 		// Update postdata.
+		// TODO: Is this necessary? Can we handle this by adding data to prepared_post?
 		wp_update_post( $post_object );
+
+		// TODO: Do we need to update any values here? post_status, for example?
+
+		return $prepared_post;
 	}
 
 	/**
