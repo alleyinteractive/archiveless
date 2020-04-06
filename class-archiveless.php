@@ -248,8 +248,9 @@ class Archiveless {
 	 * @param  int $post_id Post ID.
 	 */
 	public function save_post( $post_id ) {
-		// phpcs:disable WordPress.Security.NonceVerification.NoNonceVerification
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( isset( $_POST[ self::$meta_key ] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			update_post_meta( $post_id, self::$meta_key, intval( $_POST[ self::$meta_key ] ) );
 		}
 	}
