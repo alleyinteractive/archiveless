@@ -77,13 +77,12 @@ class Archiveless {
 	public function setup() {
 		add_action( 'init', array( $this, 'register_post_status' ) );
 		add_action( 'init', array( $this, 'register_post_meta' ) );
+		add_action( 'transition_post_status', array( $this, 'transition_post_status' ), 10, 3 );
+		add_action( 'updated_post_meta', array( $this, 'updated_post_meta' ), 10, 4 );
 
-		add_filter( 'wp_insert_post_data', array( $this, 'wp_insert_post_data' ), 10, 2 );
-
-		// Set for all gutenberg post types.
-		// Should only fire if gutenberg is enabled.
+		// Override the post status in the REST response to avoid Gutenbugs.
 		foreach ( get_post_types() as $allowed_post_type ) {
-			add_action( 'rest_pre_insert_' . $allowed_post_type, array( $this, 'gutenberg_insert_post_data' ), 10, 2 );
+			add_filter( 'rest_prepare_' . $allowed_post_type, array( $this, 'rest_prepare_post_data' ) );
 		}
 
 		add_action( 'save_post', array( $this, 'save_post' ) );
@@ -156,76 +155,91 @@ class Archiveless {
 	}
 
 	/**
-	 * Set the custom post status when post data is being inserted.
+	 * Set the custom post status when the meta key changes.
 	 *
 	 * WordPress, unfortunately, doesn't provide a great way to _manage_ custom
 	 * post statuses. While we can register and use them just fine, there are
 	 * areas of the Admin where statuses are hard-coded. This method is part of
 	 * this plugin's trickery to provide a seamless integration.
 	 *
-	 * @param  array $data Slashed post data to be inserted into the database.
-	 * @param  array $postarr Raw post data used to generate `$data`. This
-	 *                        contains, amongst other things, the post ID.
-	 * @return array $data, potentially with a new status.
+	 * @param int    $meta_id     ID of updated metadata entry.
+	 * @param int    $object_id   ID of the object metadata is for.
+	 * @param string $meta_key    Metadata key.
+	 * @param mixed  $meta_value Metadata value. Serialized if non-scalar.
 	 */
-	public function wp_insert_post_data( $data, $postarr ) {
-		if ( 'publish' === $data['post_status'] ) {
-			if ( isset( $_POST[ self::$meta_key ] ) ) { // phpcs:disable WordPress.Security.NonceVerification.Missing
-				if ( '1' === $_POST[ self::$meta_key ] ) { // phpcs:disable WordPress.Security.NonceVerification.Missing
-					$data['post_status'] = self::$status;
-				}
-			} elseif ( ! empty( $postarr['ID'] ) && '1' === get_post_meta( $postarr['ID'], self::$meta_key, true ) ) {
-				$data['post_status'] = self::$status;
-			}
+	public function updated_post_meta( $meta_id, $object_id, $meta_key, $meta_value ) {
+		// Only handle updates to this plugin's meta key.
+		if ( self::$meta_key !== $meta_key ) {
+			return;
 		}
 
-		return $data;
-	}
-
-	/**
-	 * Set the custom post status when post data is being inserted.
-	 *
-	 * WordPress, unfortunately, doesn't provide a great way to _manage_ custom
-	 * post statuses. While we can register and use them just fine, there are
-	 * areas of the admin where statuses are hard-coded. This method is part of
-	 * this plugin's trickery to provide a seamless integration.
-	 *
-	 * @param  object $prepared_post Post data. Arrays are expected to be escaped, objects are not. Default array.
-	 * @return array $data Post data, potentially with a new status.
-	 */
-	public function gutenberg_insert_post_data( $prepared_post ) {
-		// Get prepared Post id.
-		$post_id = $prepared_post->ID;
-
-		// If autosaving or is revision, bail.
-		if (
-			defined( 'DOING_AUTOSAVE' )
-			&& DOING_AUTOSAVE
-			&& ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) )
+		// If we are autosaving or the current post is a revision, bail.
+		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+			|| wp_is_post_revision( $object_id )
+			|| wp_is_post_autosave( $object_id )
 		) {
 			return;
 		}
 
-		// Get post object for updating.
-		$post_object = get_post( $post_id );
-
-		// If the post status is published.
-		// Elseif the post status is 'archiveless'.
-		if ( 'publish' === $post_object->post_status ) {
-			// If we have a post id and the value of the archiveless is ''.
-			// If empty assume checking field. Rest at a delay from Classic.
-			if ( ! empty( $post_id ) && '1' !== get_post_meta( $post_id, self::$meta_key, true ) ) {
-				$post_object->post_status = self::$status;
-			}
-		} elseif ( self::$status === $post_object->post_status ) {
-			$post_object->post_status = 'publish';
+		// Try to get the post object.
+		$post_object = get_post( $object_id );
+		if ( empty( $post_object->post_status ) ) {
+			return;
 		}
 
-		// Update postdata.
-		wp_update_post( $post_object );
+		// Get the current status and switch if necessary.
+		$is_archiveless = 1 === (int) $meta_value;
+		if ( $is_archiveless && 'publish' === $post_object->post_status ) {
+			// Archiveless was requested, but the post's status is currently publish, so we need to change it.
+			$post_object->post_status = self::$status;
+		} elseif ( ! $is_archiveless && self::$status === $post_object->post_status ) {
+			// Archiveless was turned off, so we need to set the post status back to publish.
+			$post_object->post_status = 'publish';
+		} else {
+			// No change, so bail early.
+			return;
+		}
 
-		// Return $prepared post.
-		return $prepared_post;
+		// Update the post with the new status.
+		wp_update_post( $post_object );
+	}
+
+	/**
+	 * Filters the post data for a response.
+	 *
+	 * @param WP_REST_Response $response The response object.
+	 * @return WP_REST_Response The modified response.
+	 */
+	public function rest_prepare_post_data( $response ) {
+		// Override the post status if it is 'archiveless'.
+		if ( ! empty( $response->data['status'] ) && self::$status === $response->data['status'] ) {
+			$response->data['status'] = 'publish';
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Fires when a post is transitioned from one status to another.
+	 *
+	 * @param string  $new_status New post status.
+	 * @param string  $old_status Old post status.
+	 * @param WP_Post $post       Post object.
+	 */
+	public function transition_post_status( $new_status, $old_status, $post ) {
+		// Only fire if transitioning from future to publish.
+		if ( 'future' !== $old_status || 'publish' !== $new_status ) {
+			return;
+		}
+
+		// Only fire if archiveless postmeta is set to true.
+		if ( 1 !== (int) get_post_meta( $post->ID, self::$meta_key, true ) ) {
+			return;
+		}
+
+		// Change the post status to `archiveless` and update.
+		$post->post_status = self::$status;
+		wp_update_post( $post );
 	}
 
 	/**
@@ -234,8 +248,9 @@ class Archiveless {
 	 * @param  int $post_id Post ID.
 	 */
 	public function save_post( $post_id ) {
-		// phpcs:disable WordPress.Security.NonceVerification.NoNonceVerification
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( isset( $_POST[ self::$meta_key ] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			update_post_meta( $post_id, self::$meta_key, intval( $_POST[ self::$meta_key ] ) );
 		}
 	}
