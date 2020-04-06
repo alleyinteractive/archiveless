@@ -77,13 +77,11 @@ class Archiveless {
 	public function setup() {
 		add_action( 'init', array( $this, 'register_post_status' ) );
 		add_action( 'init', array( $this, 'register_post_meta' ) );
+		add_action( 'updated_post_meta', array( $this, 'updated_post_meta' ), 10, 4 );
 
-		add_filter( 'wp_insert_post_data', array( $this, 'wp_insert_post_data' ), 10, 2 );
-
-		// Set for all gutenberg post types.
-		// Should only fire if gutenberg is enabled.
+		// Override the post status in the REST response to avoid Gutenbugs.
 		foreach ( get_post_types() as $allowed_post_type ) {
-			add_filter( 'rest_pre_insert_' . $allowed_post_type, array( $this, 'gutenberg_insert_post_data' ) );
+			add_filter( 'rest_prepare_' . $allowed_post_type, array( $this, 'rest_prepare_post_data' ) );
 		}
 
 		add_action( 'save_post', array( $this, 'save_post' ) );
@@ -156,68 +154,40 @@ class Archiveless {
 	}
 
 	/**
-	 * Set the custom post status when post data is being inserted.
+	 * Set the custom post status when the meta key changes.
 	 *
 	 * WordPress, unfortunately, doesn't provide a great way to _manage_ custom
 	 * post statuses. While we can register and use them just fine, there are
 	 * areas of the Admin where statuses are hard-coded. This method is part of
 	 * this plugin's trickery to provide a seamless integration.
 	 *
-	 * @param  array $data Slashed post data to be inserted into the database.
-	 * @param  array $postarr Raw post data used to generate `$data`. This
-	 *                        contains, amongst other things, the post ID.
-	 * @return array $data, potentially with a new status.
+	 * @param int    $meta_id     ID of updated metadata entry.
+	 * @param int    $object_id   ID of the object metadata is for.
+	 * @param string $meta_key    Metadata key.
+	 * @param mixed  $meta_value Metadata value. Serialized if non-scalar.
 	 */
-	public function wp_insert_post_data( $data, $postarr ) {
-		if ( 'publish' === $data['post_status'] ) {
-			if ( isset( $_POST[ self::$meta_key ] ) ) { // phpcs:disable WordPress.Security.NonceVerification.Missing
-				if ( '1' === $_POST[ self::$meta_key ] ) { // phpcs:disable WordPress.Security.NonceVerification.Missing
-					$data['post_status'] = self::$status;
-				}
-			} elseif ( ! empty( $postarr['ID'] ) && '1' === get_post_meta( $postarr['ID'], self::$meta_key, true ) ) {
-				$data['post_status'] = self::$status;
-			}
+	public function updated_post_meta( $meta_id, $object_id, $meta_key, $meta_value ) {
+		// Only handle updates to this plugin's meta key.
+		if ( self::$meta_key !== $meta_key ) {
+			return;
 		}
-
-		return $data;
-	}
-
-	/**
-	 * Set the custom post status when post data is being inserted.
-	 *
-	 * WordPress, unfortunately, doesn't provide a great way to _manage_ custom
-	 * post statuses. While we can register and use them just fine, there are
-	 * areas of the admin where statuses are hard-coded. This method is part of
-	 * this plugin's trickery to provide a seamless integration.
-	 *
-	 * @param stdClass $prepared_post Post data. Arrays are expected to be escaped, objects are not. Default array.
-	 * @return stdClass The updated prepared_post.
-	 */
-	public function gutenberg_insert_post_data( $prepared_post ) {
-		// Try to get prepared post ID.
-		if ( empty( $prepared_post->ID ) ) {
-			return $prepared_post;
-		}
-		$post_id = $prepared_post->ID;
 
 		// If we are autosaving or the current post is a revision, bail.
-		if (
-			defined( 'DOING_AUTOSAVE' )
-			&& DOING_AUTOSAVE
-			&& ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) )
+		if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE )
+			|| wp_is_post_revision( $object_id )
+			|| wp_is_post_autosave( $object_id )
 		) {
-			return $prepared_post;
+			return;
 		}
 
 		// Try to get the post object.
-		$post_object = get_post( $post_id );
+		$post_object = get_post( $object_id );
 		if ( empty( $post_object->post_status ) ) {
-			return $prepared_post;
+			return;
 		}
 
-		// Get the current value of the archiveless post meta and the current status, and switch if necessary.
-		// TODO: What happens if this value is set via the sidebar? Is it off-by-one?
-		$is_archiveless = 1 === (int) get_post_meta( $post_id, self::$meta_key, true );
+		// Get the current status and switch if necessary.
+		$is_archiveless = 1 === (int) $meta_value;
 		if ( $is_archiveless && 'publish' === $post_object->post_status ) {
 			// Archiveless was requested, but the post's status is currently publish, so we need to change it.
 			$post_object->post_status = self::$status;
@@ -226,16 +196,26 @@ class Archiveless {
 			$post_object->post_status = 'publish';
 		} else {
 			// No change, so bail early.
-			return $prepared_post;
+			return;
 		}
 
-		// Update postdata.
-		// TODO: Is this necessary? Can we handle this by adding data to prepared_post?
+		// Update the post with the new status.
 		wp_update_post( $post_object );
+	}
 
-		// TODO: Do we need to update any values here? post_status, for example?
+	/**
+	 * Filters the post data for a response.
+	 *
+	 * @param WP_REST_Response $response The response object.
+	 * @return WP_REST_Response The modified response.
+	 */
+	public function rest_prepare_post_data( $response ) {
+		// Override the post status if it is 'archiveless'.
+		if ( ! empty( $response->data['status'] ) && self::$status === $response->data['status'] ) {
+			$response->data['status'] = 'publish';
+		}
 
-		return $prepared_post;
+		return $response;
 	}
 
 	/**
