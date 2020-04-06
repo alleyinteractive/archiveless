@@ -77,6 +77,7 @@ class Archiveless {
 	public function setup() {
 		add_action( 'init', array( $this, 'register_post_status' ) );
 		add_action( 'init', array( $this, 'register_post_meta' ) );
+		add_action( 'transition_post_status', array( $this, 'transition_post_status' ), 10, 3 );
 		add_action( 'updated_post_meta', array( $this, 'updated_post_meta' ), 10, 4 );
 
 		// Override the post status in the REST response to avoid Gutenbugs.
@@ -216,6 +217,29 @@ class Archiveless {
 		}
 
 		return $response;
+	}
+
+	/**
+	 * Fires when a post is transitioned from one status to another.
+	 *
+	 * @param string  $new_status New post status.
+	 * @param string  $old_status Old post status.
+	 * @param WP_Post $post       Post object.
+	 */
+	public function transition_post_status( $new_status, $old_status, $post ) {
+		// Only fire if transitioning from future to publish.
+		if ( 'future' !== $old_status || 'publish' !== $new_status ) {
+			return;
+		}
+
+		// Only fire if archiveless postmeta is set to true.
+		if ( 1 !== (int) get_post_meta( $post->ID, self::$meta_key, true ) ) {
+			return;
+		}
+
+		// Change the post status to `archiveless` and update.
+		$post->post_status = self::$status;
+		wp_update_post( $post );
 	}
 
 	/**
