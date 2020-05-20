@@ -78,6 +78,7 @@ class Archiveless {
 		add_action( 'init', array( $this, 'register_post_status' ) );
 		add_action( 'init', array( $this, 'register_post_meta' ) );
 		add_action( 'transition_post_status', array( $this, 'transition_post_status' ), 10, 3 );
+		add_action( 'added_post_meta', array( $this, 'updated_post_meta' ), 10, 4 );
 		add_action( 'updated_post_meta', array( $this, 'updated_post_meta' ), 10, 4 );
 
 		// Override the post status in the REST response to avoid Gutenbugs.
@@ -146,6 +147,11 @@ class Archiveless {
 	 */
 	public function add_ui() {
 		global $post;
+
+		// Ensure there is a post ID before attempting to look up postmeta.
+		if ( empty( $post->ID ) ) {
+			return;
+		}
 		?>
 		<div class="misc-pub-section">
 			<input type="hidden" name="<?php echo esc_attr( self::$meta_key ); ?>" value="0" />
@@ -227,8 +233,8 @@ class Archiveless {
 	 * @param WP_Post $post       Post object.
 	 */
 	public function transition_post_status( $new_status, $old_status, $post ) {
-		// Only fire if transitioning from future to publish.
-		if ( 'future' !== $old_status || 'publish' !== $new_status ) {
+		// Only fire if transitioning to publish.
+		if ( 'publish' !== $new_status || $new_status === $old_status ) {
 			return;
 		}
 
@@ -262,6 +268,12 @@ class Archiveless {
 	 */
 	public function fool_edit_form() {
 		global $post;
+
+		// Ensure there is a post status before attempting to set it.
+		if ( empty( $post->post_status ) ) {
+			return;
+		}
+
 		if ( self::$status === $post->post_status ) {
 			$post->post_status = 'publish';
 		}
@@ -339,6 +351,11 @@ class Archiveless {
 	 */
 	public function no_index() {
 		global $post;
+
+		// Ensure there is a post ID before attempting to look up postmeta.
+		if ( empty( $post->ID ) ) {
+			return;
+		}
 
 		if ( '1' === get_post_meta( $post->ID, self::$meta_key, true ) ) {
 			echo '<meta name="robots" content="noindex,nofollow" />';
