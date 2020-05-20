@@ -90,5 +90,32 @@ class ArchivelessTest extends WP_UnitTestCase {
 		// Verify that the post transitioned to 'archiveless' (due to the post meta)
 		$this->assertEquals( 'archiveless', get_post_status( $post_id ) );
 	}
+
+	/**
+	 * Ensures that the post status updates successfully when the archiveless
+	 * post meta is added or updated.
+	 */
+	public function test_post_meta_hooks() {
+		// Create a post.
+		$post_id = $this->factory->post->create( array(
+			'post_title' => 'Test Archiveless Post',
+			'post_status' => 'publish',
+		) );
+
+		// Verify that the post status is 'publish'.
+		$this->assertEquals( 'publish', get_post_status( $post_id ) );
+
+		// Add the archiveless postmeta (rather than updating it) and ensure the post status changes.
+		add_post_meta( $post_id, 'archiveless', '1' );
+		$this->assertEquals( 'archiveless', get_post_status( $post_id ) );
+
+		// Update the post meta value and ensure it changes back to publish.
+		update_post_meta( $post_id, 'archiveless', '0' );
+		$this->assertEquals( 'publish', get_post_status( $post_id ) );
+
+		// Update the post meta value and ensure it changes back to archiveless.
+		update_post_meta( $post_id, 'archiveless', '1' );
+		$this->assertEquals( 'archiveless', get_post_status( $post_id ) );
+	}
 }
 
