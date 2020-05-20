@@ -146,6 +146,11 @@ class Archiveless {
 	 */
 	public function add_ui() {
 		global $post;
+
+		// Ensure there is a post ID before attempting to look up postmeta.
+		if ( empty( $post->ID ) ) {
+			return;
+		}
 		?>
 		<div class="misc-pub-section">
 			<input type="hidden" name="<?php echo esc_attr( self::$meta_key ); ?>" value="0" />
@@ -262,6 +267,12 @@ class Archiveless {
 	 */
 	public function fool_edit_form() {
 		global $post;
+
+		// Ensure there is a post status before attempting to set it.
+		if ( empty( $post->post_status ) ) {
+			return;
+		}
+
 		if ( self::$status === $post->post_status ) {
 			$post->post_status = 'publish';
 		}
@@ -339,6 +350,11 @@ class Archiveless {
 	 */
 	public function no_index() {
 		global $post;
+
+		// Ensure there is a post ID before attempting to look up postmeta.
+		if ( empty( $post->ID ) ) {
+			return;
+		}
 
 		if ( '1' === get_post_meta( $post->ID, self::$meta_key, true ) ) {
 			echo '<meta name="robots" content="noindex,nofollow" />';
