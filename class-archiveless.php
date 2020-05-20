@@ -232,8 +232,8 @@ class Archiveless {
 	 * @param WP_Post $post       Post object.
 	 */
 	public function transition_post_status( $new_status, $old_status, $post ) {
-		// Only fire if transitioning from future to publish.
-		if ( 'future' !== $old_status || 'publish' !== $new_status ) {
+		// Only fire if transitioning to publish.
+		if ( 'publish' !== $new_status ) {
 			return;
 		}
 
