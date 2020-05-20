@@ -78,6 +78,7 @@ class Archiveless {
 		add_action( 'init', array( $this, 'register_post_status' ) );
 		add_action( 'init', array( $this, 'register_post_meta' ) );
 		add_action( 'transition_post_status', array( $this, 'transition_post_status' ), 10, 3 );
+		add_action( 'added_post_meta', array( $this, 'updated_post_meta' ), 10, 4 );
 		add_action( 'updated_post_meta', array( $this, 'updated_post_meta' ), 10, 4 );
 
 		// Override the post status in the REST response to avoid Gutenbugs.
@@ -233,7 +234,7 @@ class Archiveless {
 	 */
 	public function transition_post_status( $new_status, $old_status, $post ) {
 		// Only fire if transitioning to publish.
-		if ( 'publish' !== $new_status ) {
+		if ( 'publish' !== $new_status || $new_status === $old_status ) {
 			return;
 		}
 
