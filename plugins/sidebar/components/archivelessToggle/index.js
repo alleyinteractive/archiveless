@@ -36,11 +36,13 @@ class ArchivelessToggle extends React.PureComponent {
    */
   render() {
     const {
-      meta: {
-        archiveless = false,
-      },
+      meta = {},
       onUpdate,
     } = this.props;
+
+    const {
+      archiveless = false,
+    } = meta;
 
     return (
       <PluginPostStatusInfo>
@@ -63,7 +65,7 @@ export default compose([
     const editor = select('core/editor');
     const {
       archiveless = false,
-    } = editor.getEditedPostAttribute('meta');
+    } = editor.getEditedPostAttribute('meta') || {};
 
     return {
       meta: {
