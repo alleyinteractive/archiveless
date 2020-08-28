@@ -1,6 +1,6 @@
 # Archiveless
 
-Tested to WP 5.3.2.
+Tested to WP 5.5
 
 Hide WordPress posts from archives, which includes the index page, search results, date archives, author archives, and term lists.
 
