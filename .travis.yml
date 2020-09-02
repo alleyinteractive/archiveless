@@ -13,7 +13,6 @@ services:
 # @link http://about.travis-ci.org/docs/user/languages/php/
 language: php
 
-
 # Specify when Travis should build.
 branches:
   only:
