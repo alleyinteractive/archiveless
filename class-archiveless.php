@@ -55,7 +55,8 @@ class Archiveless {
 	}
 
 	/**
-	 * Determine if gutenberg editor exists.
+	 * Determine if gutenberg editor exists and
+	 * the post type has support for the `custom-fields`.
 	 *
 	 * @return boolean
 	 */
@@ -64,8 +65,11 @@ class Archiveless {
 
 		// Do we have access to current screen?
 		if ( did_action( 'current_screen' ) && is_admin() ) {
-			$current_screen  = get_current_screen();
-			$is_block_editor = $current_screen instanceof WP_Screen ? $current_screen->is_block_editor : false;
+			$current_screen = get_current_screen();
+
+			if ( $current_screen instanceof WP_Screen && post_type_supports( $current_screen->post_type, 'custom-fields' ) ) {
+				$is_block_editor = wp_validate_boolean( $current_screen->is_block_editor );
+			}
 		}
 
 		return $is_block_editor;

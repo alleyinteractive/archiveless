@@ -13,7 +13,6 @@ services:
 # @link http://about.travis-ci.org/docs/user/languages/php/
 language: php
 
-
 # Specify when Travis should build.
 branches:
   only:
@@ -55,8 +54,8 @@ before_script:
   - |
     case "$TRAVIS_PHP_VERSION" in
     5.6)
-      echo "Using PHPUnit 4.8"
-      composer global require "phpunit/phpunit=4.8.*"
+      echo "Using PHPUnit 5.4"
+      composer global require "phpunit/phpunit=5.4.*"
       ;;
     *)
       echo "Using PHPUnit 6.1"
