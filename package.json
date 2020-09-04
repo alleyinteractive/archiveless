@@ -16,7 +16,7 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "papaparse": "^4.6.1",
+    "papaparse": "^5.2.0",
     "prop-types": "^15.6.2"
   },
   "devDependencies": {
