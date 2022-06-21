@@ -1,0 +1,17 @@
+{
+    "name": "alleyinteractive/archiveless",
+    "description": "WordPress plugin to hide posts from archives (lists)",
+    "homepage": "https://github.com/alleyinteractive/archiveless",
+    "type": "wordpress-plugin",
+    "license": "GPL-3.0-or-later",
+    "authors": [
+        {
+            "name": "Alley",
+            "email": "noreply@alley.co"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/alleyinteractive/archiveless/issues",
+        "source": "https://github.com/alleyinteractive/archiveless"
+    }
+}
