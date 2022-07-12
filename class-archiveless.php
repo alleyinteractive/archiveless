@@ -81,12 +81,7 @@ class Archiveless {
 	public function setup() {
 		add_action( 'init', array( $this, 'register_post_status' ) );
 		add_action( 'init', array( $this, 'register_post_meta' ) );
-		add_action( 'init', function() {
-			// Override the post status in the REST response to avoid Gutenbugs.
-			foreach ( get_post_types() as $allowed_post_type ) {
-				add_filter( 'rest_prepare_' . $allowed_post_type, array( $this, 'rest_prepare_post_data' ) );
-			}
-		}, 99 );
+		add_action( 'wp_loaded', array( $this, 'filter_rest_response' ) );
 		add_action( 'transition_post_status', array( $this, 'transition_post_status' ), 10, 3 );
 		add_action( 'added_post_meta', array( $this, 'updated_post_meta' ), 10, 4 );
 		add_action( 'updated_post_meta', array( $this, 'updated_post_meta' ), 10, 4 );
@@ -213,6 +208,18 @@ class Archiveless {
 
 		// Update the post with the new status.
 		wp_update_post( $post_object );
+	}
+
+	/**
+	 * Add a filter to all post types for REST response modification.
+	 *
+	 * @return void
+	 */
+	public function filter_rest_response() {
+		// Override the post status in the REST response to avoid Gutenbugs.
+		foreach ( get_post_types() as $allowed_post_type ) {
+			add_filter( 'rest_prepare_' . $allowed_post_type, array( $this, 'rest_prepare_post_data' ) );
+		}
 	}
 
 	/**
