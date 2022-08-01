@@ -1,8 +1,11 @@
 <?php
 
+use Mantle\Testing\Concerns\Refresh_Database;
 use Mantle\Testkit\Test_Case;
 
 class Test_General extends Test_Case {
+	use Refresh_Database;
+
 	protected $archiveless_post;
 
 	protected $archiveable_post;

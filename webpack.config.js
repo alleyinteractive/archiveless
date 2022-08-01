@@ -1,7 +1,6 @@
 const path = require('path');
 const StatsPlugin = require('webpack-stats-plugin').StatsWriterPlugin;
 const DependencyExtractionWebpackPlugin = require('@wordpress/dependency-extraction-webpack-plugin');
-const autoprefixer = require('autoprefixer');
 const createWriteWpAssetManifest = require('./webpack/wpAssets');
 
 module.exports = (env, { mode }) => ({
