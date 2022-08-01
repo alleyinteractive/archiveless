@@ -1,9 +1,3 @@
-# Build files
-build
-bower_components
-node_modules
-vendor
-
 # Log files
 *.log
 
