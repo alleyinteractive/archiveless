@@ -1,11 +1,13 @@
 <?php
 
-class ArchivelessTest extends WP_UnitTestCase {
+use Mantle\Testkit\Test_Case;
+
+class Test_General extends Test_Case {
 	protected $archiveless_post;
 
 	protected $archiveable_post;
 
-	public function setUp() {
+	protected function setUp(): void {
 		parent::setUp();
 
 		$category_id = $this->factory->term->create( array(
@@ -118,4 +120,3 @@ class ArchivelessTest extends WP_UnitTestCase {
 		$this->assertEquals( 'archiveless', get_post_status( $post_id ) );
 	}
 }
-

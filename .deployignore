@@ -18,3 +18,4 @@ Thumbs.db
 *.code-workspace
 .idea
 .vscode
+.phpcs
