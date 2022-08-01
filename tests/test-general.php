@@ -40,17 +40,16 @@ class Test_General extends Test_Case {
 	}
 
 	public function test_accesible_as_singular() {
-		$this->go_to( get_permalink( $this->archiveless_post ) );
-
-		$this->assertQueriedObjectId( $this->archiveless_post );
-		$this->assertQueryTrue( 'is_singular', 'is_single' );
+		$this->get( get_permalink( $this->archiveless_post ) )
+			->assertQueriedObjectId( $this->archiveless_post )
+			->assertQueryTrue( 'is_singular', 'is_single' );
 	}
 
 	/**
 	 * @dataProvider inaccessible
 	 */
 	public function test_inaccessible( $url, $conditional ) {
-		$this->go_to( $url );
+		$this->get( $url );
 
 		$this->assertFalse( is_singular() );
 		$this->assertTrue( call_user_func( $conditional ), "Asserting that {$conditional}() is true" );
