@@ -42,10 +42,8 @@ class Test_General extends Test_Case {
 	public function test_accesible_as_singular() {
 		$this->go_to( get_permalink( $this->archiveless_post ) );
 
-		$this->assertTrue( is_singular() );
-		$this->assertTrue( have_posts() );
-		the_post();
-		$this->assertEquals( $this->archiveless_post, get_the_ID() );
+		$this->assertQueriedObjectId( $this->archiveless_post );
+		$this->assertQueryTrue( 'is_singular', 'is_single' );
 	}
 
 	/**
