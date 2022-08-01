@@ -92,7 +92,6 @@ class Archiveless {
 		if ( is_admin() ) {
 			add_action( 'post_submitbox_misc_actions', array( $this, 'add_ui' ) );
 			add_action( 'add_meta_boxes', array( $this, 'fool_edit_form' ) );
-			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
 		} else {
 			add_filter( 'posts_where', array( $this, 'posts_where' ), 10, 2 );
 		}
@@ -317,45 +316,6 @@ class Archiveless {
 		}
 
 		return $where;
-	}
-
-	/**
-	 * Enqueue general-purpose scripts in the admin.
-	 */
-	public function admin_enqueue_scripts() {
-
-		// Only enqueue for Block Editor pages.
-		if ( $this->is_block_editor() ) {
-			wp_enqueue_script(
-				'wp-starter-plugin-plugin-sidebar',
-				plugins_url( 'build/pluginSidebar.js', __FILE__ ),
-				[ 'wp-i18n', 'wp-edit-post' ],
-				filemtime( plugin_dir_path( __FILE__ ) . 'build/pluginSidebar.js' ),
-				true
-			);
-			$this->inline_locale_data( 'wp-starter-plugin-plugin-sidebar' );
-		}
-	}
-
-	/**
-	 * Creates a new Jed instance with specified locale data configuration.
-	 *
-	 * @param string $to_handle The script handle to attach the inline script to.
-	 */
-	public function inline_locale_data( string $to_handle ) {
-		// Define locale data for Jed.
-		$locale_data = [
-			'' => [
-				'domain' => 'wp-starter-plugin',
-				'lang'   => is_admin() ? get_user_locale() : get_locale(),
-			],
-		];
-
-		// Pass the Jed configuration to the admin to properly register i18n.
-		wp_add_inline_script(
-			$to_handle,
-			'wp.i18n.setLocaleData( ' . wp_json_encode( $locale_data ) . ", 'wp-starter-plugin' );"
-		);
 	}
 
 	/**
