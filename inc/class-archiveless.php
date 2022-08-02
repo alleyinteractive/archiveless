@@ -93,7 +93,7 @@ class Archiveless {
 			add_action( 'post_submitbox_misc_actions', [ $this, 'add_ui' ] );
 			add_action( 'add_meta_boxes', [ $this, 'fool_edit_form' ] );
 		} else {
-			add_action( 'pre_get_posts', [ $this, 'on_pre_get_posts' ] );
+			add_action( 'pre_get_posts', [ $this, 'on_pre_get_posts' ], 20 ); // Later priority to mirror the previous use of posts_where.
 		}
 	}
 
@@ -341,16 +341,14 @@ class Archiveless {
 	 * @return string[]
 	 */
 	public function get_default_post_statuses( $query ) {
-		return $query->is_search()
-			? array_keys(
-				get_post_stati(
-					[
-						'exclude_from_search' => false,
-						'publicly_queryable'  => true,
-					]
-				)
+		return array_keys(
+			get_post_stati(
+				[
+					'exclude_from_search' => false,
+					'publicly_queryable'  => true,
+				]
 			)
-			: array_keys( get_post_stati( [ 'publicly_queryable' => true ] ) );
+		);
 	}
 
 	/**

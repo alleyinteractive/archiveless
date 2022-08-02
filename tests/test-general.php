@@ -41,8 +41,8 @@ class Test_General extends Test_Case {
 
 	public function test_accesible_as_singular() {
 		$this->get( get_permalink( $this->archiveless_post ) )
-			->assertQueriedObjectId( $this->archiveless_post )
-			->assertQueryTrue( 'is_singular', 'is_single' );
+			->assertQueryTrue( 'is_singular', 'is_single' )
+			->assertQueriedObjectId( $this->archiveless_post );
 	}
 
 	public function test_always_included_outside_of_main_query() {
@@ -96,14 +96,14 @@ class Test_General extends Test_Case {
 	}
 
 	public function inaccessible() {
-		return array(
-			array( '/', 'is_home' ), // Homepage
-			array( '/?year=2015&monthnum=01', 'is_date' ), // Date archive
-			array( '/?category_name=archives', 'is_category' ), // Tax archive
-			array( '/?author_name=test_author', 'is_author' ), // Author archive
-			array( '/?s=Lorem+ipsum', 'is_search' ), // Search
-			array( '/?feed=rss', 'is_feed' ), // Feeds
-		);
+		return [
+			[ '/', 'is_home' ], // Homepage
+			[ '/2015/01/', 'is_date' ], // Date archive
+			[ '/category/archives/', 'is_category' ], // Tax archive
+			[ '/author/test_author/', 'is_author' ], // Author archive
+			[ '/?s=Lorem+ipsum', 'is_search' ], // Search
+			[ '/rss/', 'is_feed' ], // Feeds
+		];
 	}
 
 	public function test_future_post_transition() {
