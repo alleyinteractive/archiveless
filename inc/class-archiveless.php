@@ -16,7 +16,7 @@ class Archiveless {
 	 * @access private
 	 * @var Archiveless
 	 */
-	private static $instance;
+	protected static $instance;
 
 	/**
 	 * The post status slug used by this plugin.
@@ -37,8 +37,23 @@ class Archiveless {
 	/**
 	 * Archiveless constructor.
 	 */
-	private function __construct() {
-		/* Don't do anything, needs to be initialized via instance() method */
+	protected function __construct() {
+		add_action( 'init', [ $this, 'register_post_status' ] );
+		add_action( 'init', [ $this, 'register_post_meta' ] );
+		add_action( 'wp_loaded', [ $this, 'filter_rest_response' ] );
+		add_action( 'transition_post_status', [ $this, 'transition_post_status' ], 10, 3 );
+		add_action( 'added_post_meta', [ $this, 'updated_post_meta' ], 10, 4 );
+		add_action( 'updated_post_meta', [ $this, 'updated_post_meta' ], 10, 4 );
+
+		add_action( 'save_post', [ $this, 'save_post' ] );
+		add_action( 'wp_head', [ $this, 'no_index' ] );
+
+		if ( is_admin() ) {
+			add_action( 'post_submitbox_misc_actions', [ $this, 'add_ui' ] );
+			add_action( 'add_meta_boxes', [ $this, 'fool_edit_form' ] );
+		} else {
+			add_action( 'pre_get_posts', [ $this, 'on_pre_get_posts' ], 20 ); // Later priority to mirror the previous use of posts_where.
+		}
 	}
 
 	/**
@@ -49,7 +64,6 @@ class Archiveless {
 	public static function instance() {
 		if ( ! isset( self::$instance ) ) {
 			self::$instance = new Archiveless();
-			self::$instance->setup();
 		}
 		return self::$instance;
 	}
@@ -79,22 +93,7 @@ class Archiveless {
 	 * Register all actions and filters.
 	 */
 	public function setup() {
-		add_action( 'init', [ $this, 'register_post_status' ] );
-		add_action( 'init', [ $this, 'register_post_meta' ] );
-		add_action( 'wp_loaded', [ $this, 'filter_rest_response' ] );
-		add_action( 'transition_post_status', [ $this, 'transition_post_status' ], 10, 3 );
-		add_action( 'added_post_meta', [ $this, 'updated_post_meta' ], 10, 4 );
-		add_action( 'updated_post_meta', [ $this, 'updated_post_meta' ], 10, 4 );
 
-		add_action( 'save_post', [ $this, 'save_post' ] );
-		add_action( 'wp_head', [ $this, 'no_index' ] );
-
-		if ( is_admin() ) {
-			add_action( 'post_submitbox_misc_actions', [ $this, 'add_ui' ] );
-			add_action( 'add_meta_boxes', [ $this, 'fool_edit_form' ] );
-		} else {
-			add_action( 'pre_get_posts', [ $this, 'on_pre_get_posts' ], 20 ); // Later priority to mirror the previous use of posts_where.
-		}
 	}
 
 	/**
