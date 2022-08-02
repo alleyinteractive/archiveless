@@ -335,8 +335,6 @@ class Archiveless {
 	 * Retrieve the default post statuses to show for a request.
 	 * Imitates the default behavior of WP_Query.
 	 *
-	 * @todo Include private post statuses for logged in users.
-	 *
 	 * @param \WP_Query $query Current WP_Query object.
 	 * @return string[]
 	 */
