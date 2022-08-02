@@ -74,26 +74,23 @@ class Archiveless {
 	 *
 	 * @return boolean
 	 */
-	public function is_block_editor() {
+	public function is_block_editor(): bool {
 		$is_block_editor = false;
 
 		// Do we have access to current screen?
-		if ( did_action( 'current_screen' ) && is_admin() ) {
+		if ( is_admin() ) {
 			$current_screen = get_current_screen();
 
-			if ( $current_screen instanceof WP_Screen && post_type_supports( $current_screen->post_type, 'custom-fields' ) ) {
+			if (
+				$current_screen instanceof WP_Screen
+				&& ! empty( $current_screen->post_type )
+				&& post_type_supports( $current_screen->post_type, 'custom-fields' )
+			) {
 				$is_block_editor = wp_validate_boolean( $current_screen->is_block_editor );
 			}
 		}
 
 		return $is_block_editor;
-	}
-
-	/**
-	 * Register all actions and filters.
-	 */
-	public function setup() {
-
 	}
 
 	/**
