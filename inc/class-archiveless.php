@@ -93,7 +93,7 @@ class Archiveless {
 			add_action( 'post_submitbox_misc_actions', [ $this, 'add_ui' ] );
 			add_action( 'add_meta_boxes', [ $this, 'fool_edit_form' ] );
 		} else {
-			add_filter( 'posts_where', [ $this, 'posts_where' ], 10, 2 );
+			add_action( 'pre_get_posts', [ $this, 'on_pre_get_posts' ] );
 		}
 	}
 
@@ -291,31 +291,66 @@ class Archiveless {
 	}
 
 	/**
-	 * Hide archiveless posts on non-singular pages.
+	 * Modify the query to hide archiveless posts on non-singular pages.
 	 *
-	 * @param  string   $where MySQL WHERE clause.
-	 * @param  WP_Query $query Current WP_Query object.
-	 * @return string WHERE clause, potentially with 'archiveless' post status
-	 *                      removed.
+	 * Optionally allow archiveless posts to be hidden for other queries by
+	 * passing 'exclude_archiveless'.
+	 *
+	 * @param \WP_Query $query Current WP_Query object.
 	 */
-	public function posts_where( $where, $query ) {
-		global $wpdb;
-
-		$archiveless_status = self::$status;
-
+	public function on_pre_get_posts( $query ) {
+		// Don't modify the query if the post_status is set. A status of 'any'
+		// or 'publish' is ignored since get_post() sets 'publish' as the
+		// default post_status value when not defined.
 		if (
-			$query->is_main_query() &&
-			! $query->is_singular() &&
-			false !== strpos( $where, " OR {$wpdb->posts}.post_status = '{$archiveless_status}'" )
+			! empty( $query->get( 'post_status' ) )
+			&& 'any' !== $query->get( 'post_status' )
+			&& 'publish' !== $query->get( 'post_status' )
 		) {
-			$where = str_replace(
-				" OR {$wpdb->posts}.post_status = '{$archiveless_status}'",
-				'',
-				$where
-			);
+			return;
 		}
 
-		return $where;
+		$post_statuses = $this->get_default_post_statuses( $query );
+
+		// Determine if archiveless posts should be included or excluded from
+		// the current query.
+		if (
+			( $query->is_main_query() && $query->is_singular() )
+			|| ( ! $query->is_main_query() && ! $query->get( 'exclude_archiveless' ) )
+		) {
+			$query->set(
+				'post_status',
+				array_merge( $post_statuses, [ self::$status ] )
+			);
+		} else {
+			// Exclude archiveless posts from the query.
+			$query->set( // phpcs:ignore WordPressVIPMinimum.Hooks.PreGetPosts.PreGetPosts
+				'post_status',
+				array_diff( $post_statuses, [ self::$status ] ),
+			);
+		}
+	}
+
+	/**
+	 * Retrieve the default post statuses to show for a request.
+	 * Imitates the default behavior of WP_Query.
+	 *
+	 * @todo Include private post statuses for logged in users.
+	 *
+	 * @param \WP_Query $query Current WP_Query object.
+	 * @return string[]
+	 */
+	public function get_default_post_statuses( $query ) {
+		return $query->is_search()
+			? array_keys(
+				get_post_stati(
+					[
+						'exclude_from_search' => false,
+						'publicly_queryable'  => true,
+					]
+				)
+			)
+			: array_keys( get_post_stati( [ 'publicly_queryable' => true ] ) );
 	}
 
 	/**

@@ -45,14 +45,51 @@ class Test_General extends Test_Case {
 			->assertQueryTrue( 'is_singular', 'is_single' );
 	}
 
+	public function test_always_included_outside_of_main_query() {
+		$post_ids = get_posts( [
+			'fields'           => 'ids',
+			'posts_per_page'   => 100,
+			'suppress_filters' => false,
+		] );
+
+		$this->assertContains( $this->archiveless_post, $post_ids );
+		$this->assertContains( $this->archiveable_post, $post_ids );
+	}
+
+	public function test_query_archiveless_posts_only() {
+		$post_ids = get_posts( [
+			'fields'           => 'ids',
+			'post_status'      => 'archiveless',
+			'posts_per_page'   => 100,
+			'suppress_filters' => false,
+		] );
+
+		$this->assertContains( $this->archiveless_post, $post_ids );
+		$this->assertNotContains( $this->archiveable_post, $post_ids );
+	}
+
+	public function test_optionally_excluded_outside_of_main_query() {
+		$post_ids = get_posts( [
+			'exclude_archiveless' => true,
+			'fields'              => 'ids',
+			'posts_per_page'      => 100,
+			'suppress_filters'    => false,
+		] );
+
+		$this->assertNotContains( $this->archiveless_post, $post_ids );
+		$this->assertContains( $this->archiveable_post, $post_ids );
+	}
+
 	/**
+	 * Tests to ensure an archiveless post is not included on non-singular pages.
+	 *
 	 * @dataProvider inaccessible
 	 */
 	public function test_inaccessible( $url, $conditional ) {
 		$this->get( $url );
 
 		$this->assertFalse( is_singular() );
-		$this->assertTrue( call_user_func( $conditional ), "Asserting that {$conditional}() is true" );
+		$this->assertTrue( $conditional(), "Asserting that {$conditional}() is true" );
 		$this->assertTrue( have_posts() );
 		$this->assertContains( $this->archiveable_post, wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) );
 		$this->assertNotContains( $this->archiveless_post, wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) );
