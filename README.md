@@ -53,4 +53,4 @@ with us](https://alley.co/careers/).
 
 ## License
 
-Licensed under GPL v2.
+This software is released under the terms of the GNU General Public License version 2 or any later version.
