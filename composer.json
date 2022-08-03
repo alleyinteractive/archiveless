@@ -7,11 +7,33 @@
     "authors": [
         {
             "name": "Alley",
-            "email": "noreply@alley.co"
+            "email": "info@alley.co"
         }
     ],
     "support": {
         "issues": "https://github.com/alleyinteractive/archiveless/issues",
         "source": "https://github.com/alleyinteractive/archiveless"
+    },
+    "require-dev": {
+        "alleyinteractive/alley-coding-standards": "^0.3",
+        "mantle-framework/testkit": "^0.5"
+    },
+    "config": {
+        "allow-plugins": {
+            "alleyinteractive/composer-wordpress-autoloader": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        },
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "scripts": {
+        "phpcbf": "phpcbf .",
+        "phpcs": "phpcs .",
+        "phpunit": "phpunit",
+        "test": [
+            "@phpcs",
+            "@phpunit"
+        ]
     }
 }

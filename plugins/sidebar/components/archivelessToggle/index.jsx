@@ -22,14 +22,6 @@ const {
 const { Fill: PluginPostStatusInfo } = createSlotFill('PluginPostStatusInfo');
 
 class ArchivelessToggle extends React.PureComponent {
-  static propTypes = {
-    meta: PropTypes.shape({
-      archiveless: PropTypes.bool,
-    }).isRequired,
-    onUpdate: PropTypes.func.isRequired,
-    post: PropTypes.shape({}).isRequired,
-  };
-
   /**
    * Renders the PluginSidebar.
    * @returns {object} JSX component markup.
@@ -52,13 +44,21 @@ class ArchivelessToggle extends React.PureComponent {
           checked={archiveless}
           onChange={(value) => onUpdate(
             'archiveless',
-            value
+            value,
           )}
         />
       </PluginPostStatusInfo>
     );
   }
 }
+
+ArchivelessToggle.propTypes = {
+  meta: PropTypes.shape({
+    archiveless: PropTypes.bool,
+  }).isRequired,
+  onUpdate: PropTypes.func.isRequired,
+  post: PropTypes.shape({}).isRequired,
+};
 
 export default compose([
   withSelect((select) => {

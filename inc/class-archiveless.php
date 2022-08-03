@@ -79,22 +79,21 @@ class Archiveless {
 	 * Register all actions and filters.
 	 */
 	public function setup() {
-		add_action( 'init', array( $this, 'register_post_status' ) );
-		add_action( 'init', array( $this, 'register_post_meta' ) );
-		add_action( 'wp_loaded', array( $this, 'filter_rest_response' ) );
-		add_action( 'transition_post_status', array( $this, 'transition_post_status' ), 10, 3 );
-		add_action( 'added_post_meta', array( $this, 'updated_post_meta' ), 10, 4 );
-		add_action( 'updated_post_meta', array( $this, 'updated_post_meta' ), 10, 4 );
+		add_action( 'init', [ $this, 'register_post_status' ] );
+		add_action( 'init', [ $this, 'register_post_meta' ] );
+		add_action( 'wp_loaded', [ $this, 'filter_rest_response' ] );
+		add_action( 'transition_post_status', [ $this, 'transition_post_status' ], 10, 3 );
+		add_action( 'added_post_meta', [ $this, 'updated_post_meta' ], 10, 4 );
+		add_action( 'updated_post_meta', [ $this, 'updated_post_meta' ], 10, 4 );
 
-		add_action( 'save_post', array( $this, 'save_post' ) );
-		add_action( 'wp_head', array( $this, 'no_index' ) );
+		add_action( 'save_post', [ $this, 'save_post' ] );
+		add_action( 'wp_head', [ $this, 'no_index' ] );
 
 		if ( is_admin() ) {
-			add_action( 'post_submitbox_misc_actions', array( $this, 'add_ui' ) );
-			add_action( 'add_meta_boxes', array( $this, 'fool_edit_form' ) );
-			add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
+			add_action( 'post_submitbox_misc_actions', [ $this, 'add_ui' ] );
+			add_action( 'add_meta_boxes', [ $this, 'fool_edit_form' ] );
 		} else {
-			add_filter( 'posts_where', array( $this, 'posts_where' ), 10, 2 );
+			add_filter( 'posts_where', [ $this, 'posts_where' ], 10, 2 );
 		}
 	}
 
@@ -218,7 +217,7 @@ class Archiveless {
 	public function filter_rest_response() {
 		// Override the post status in the REST response to avoid Gutenbugs.
 		foreach ( get_post_types() as $allowed_post_type ) {
-			add_filter( 'rest_prepare_' . $allowed_post_type, array( $this, 'rest_prepare_post_data' ) );
+			add_filter( 'rest_prepare_' . $allowed_post_type, [ $this, 'rest_prepare_post_data' ] );
 		}
 	}
 
@@ -317,45 +316,6 @@ class Archiveless {
 		}
 
 		return $where;
-	}
-
-	/**
-	 * Enqueue general-purpose scripts in the admin.
-	 */
-	public function admin_enqueue_scripts() {
-
-		// Only enqueue for Block Editor pages.
-		if ( $this->is_block_editor() ) {
-			wp_enqueue_script(
-				'wp-starter-plugin-plugin-sidebar',
-				plugins_url( 'build/pluginSidebar.js', __FILE__ ),
-				[ 'wp-i18n', 'wp-edit-post' ],
-				filemtime( plugin_dir_path( __FILE__ ) . 'build/pluginSidebar.js' ),
-				true
-			);
-			$this->inline_locale_data( 'wp-starter-plugin-plugin-sidebar' );
-		}
-	}
-
-	/**
-	 * Creates a new Jed instance with specified locale data configuration.
-	 *
-	 * @param string $to_handle The script handle to attach the inline script to.
-	 */
-	public function inline_locale_data( string $to_handle ) {
-		// Define locale data for Jed.
-		$locale_data = [
-			'' => [
-				'domain' => 'wp-starter-plugin',
-				'lang'   => is_admin() ? get_user_locale() : get_locale(),
-			],
-		];
-
-		// Pass the Jed configuration to the admin to properly register i18n.
-		wp_add_inline_script(
-			$to_handle,
-			'wp.i18n.setLocaleData( ' . wp_json_encode( $locale_data ) . ", 'wp-starter-plugin' );"
-		);
 	}
 
 	/**

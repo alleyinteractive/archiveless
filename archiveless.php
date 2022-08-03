@@ -25,7 +25,8 @@
  */
 
 // Include Archiveless class.
-require_once __DIR__ . '/class-archiveless.php';
+require_once __DIR__ . '/inc/assets.php';
+require_once __DIR__ . '/inc/class-archiveless.php';
 
 // Add action hook to initialize the plugin.
 add_action( 'after_setup_theme', [ 'Archiveless', 'instance' ] );
