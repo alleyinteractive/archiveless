@@ -18,19 +18,6 @@ add_action(
 	__NAMESPACE__ . '\action_enqueue_block_editor_assets'
 );
 
-/*
- * Unhook CSS and JS script concatenation on VIP Go.
- *
- * Script concatenation interferes with a lot of Gutenberg scripts—both ones
- * that are written deliberately in this plugin, and ones that are written by
- * WordPress itself in response to actions invoked via PHP. For safety's sake,
- * we are unhooking both CSS and JS concatenation here. Script optimizations
- * should be made at the level of the script build process in this plugin and
- * in the theme, rather than relying on VIP's catch-all concatenation script.
- */
-remove_action( 'init', 'css_concat_init' );
-remove_action( 'init', 'js_concat_init' );
-
 /**
  * A callback for the enqueue_block_editor_assets action hook.
  */
