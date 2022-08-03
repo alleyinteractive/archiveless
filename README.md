@@ -14,6 +14,24 @@ This plugin provides a way for content to live inside WordPress and still be
 accessible by a direct URL but appear hidden everywhere else. Useful for culling
 older content that shouldn't appear in search results because it is untimely.
 
+## Usage
+
+By default, the plugin will prevent archiveless posts from appearing on the page
+in the main query only (outside of singular requests). It won't any query
+outside the 'main' query on the page by default.
+
+Archiveless posts can be excluded from normal queries by passing `exclude_archiveless`:
+
+```php
+$posts = get_posts(
+  [
+    'exclude_archiveless' => true,
+    'suppress_filters'    => false,
+    // ...
+  ]
+);
+```
+
 ### Install
 
 The plugin includes uncompiled Javascript. You can install the plugin by
