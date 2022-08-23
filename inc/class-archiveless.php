@@ -296,6 +296,11 @@ class Archiveless {
 	 * @param \WP_Query $query Current WP_Query object.
 	 */
 	public function on_pre_get_posts( $query ) {
+		// Ignore all post previews.
+		if ( $query->is_preview() || $query->get( 'p' ) ) {
+			return;
+		}
+
 		// Don't modify the query if the post_status is set. A status of 'any'
 		// or 'publish' is ignored since get_post() sets 'publish' as the
 		// default post_status value when not defined.
