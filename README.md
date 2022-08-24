@@ -1,9 +1,10 @@
 # Archiveless
 
-[![Testing Suite](https://github.com/alleyinteractive/archiveless/actions/workflows/unit-test.yml/badge.svg)](https://github.com/alleyinteractive/archiveless/actions/workflows/unit-test.yml)
+[![Testing
+Suite](https://github.com/alleyinteractive/archiveless/actions/workflows/unit-test.yml/badge.svg)](https://github.com/alleyinteractive/archiveless/actions/workflows/unit-test.yml)
 
-Hide WordPress posts from archives, which includes the index page, search
-results, date archives, author archives, and term lists.
+Excludes specific WordPress posts from archives (homepage, search,
+date/author/term archives).
 
 Adds `<meta name='robots' content='noindex,nofollow' />` meta to the head to
 restrict inclusion in web searches.
@@ -16,11 +17,13 @@ older content that shouldn't appear in search results because it is untimely.
 
 ## Usage
 
-By default, the plugin will prevent archiveless posts from appearing on the page
-in the main query only (outside of singular requests). It won't any query
-outside the 'main' query on the page by default.
+By default, the plugin will prevent archiveless posts from appearing on page.
+This is limited to the [main
+query](https://developer.wordpress.org/reference/functions/is_main_query/) of
+the page. It will not affect other queries by default.
 
-Archiveless posts can be excluded from normal queries by passing `exclude_archiveless`:
+Archiveless posts can be excluded from normal queries by passing
+`exclude_archiveless`:
 
 ```php
 $posts = get_posts(
@@ -53,4 +56,5 @@ with us](https://alley.co/careers/).
 
 ## License
 
-This software is released under the terms of the GNU General Public License version 2 or any later version.
+This software is released under the terms of the GNU General Public License
+version 2 or any later version.

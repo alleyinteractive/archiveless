@@ -301,6 +301,18 @@ class Archiveless {
 			return;
 		}
 
+		/**
+		 * Allow the query modification to be short-circuited.
+		 *
+		 * @param bool $pre Flag to indicate whether to short-circuit the query.
+		 * @param WP_Query $query The current WP_Query object.
+		 */
+		$pre = apply_filters( 'archiveless_pre_get_posts', false, $query );
+
+		if ( $pre ) {
+			return;
+		}
+
 		// Don't modify the query if the post_status is set. A status of 'any'
 		// or 'publish' is ignored since get_post() sets 'publish' as the
 		// default post_status value when not defined.
