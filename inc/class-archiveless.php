@@ -35,6 +35,23 @@ class Archiveless {
 	protected static $meta_key = 'archiveless';
 
 	/**
+	 * Check if the post is archiveless.
+	 *
+	 * @param int|WP_Post $post The post to check.
+	 * @return bool
+	 */
+	public static function is( $post = null ): bool {
+		$post = get_post( $post );
+
+		if ( empty( $post ) ) {
+			return false;
+		}
+
+		return get_post_status( $post ) === static::$status
+			|| '1' === get_post_meta( $post->ID, static::$meta_key, true );
+	}
+
+	/**
 	 * Archiveless constructor.
 	 */
 	protected function __construct() {
@@ -46,7 +63,7 @@ class Archiveless {
 		add_action( 'updated_post_meta', [ $this, 'updated_post_meta' ], 10, 4 );
 
 		add_action( 'save_post', [ $this, 'save_post' ] );
-		add_action( 'wp_head', [ $this, 'no_index' ] );
+		add_action( 'wp_head', [ $this, 'on_wp_head' ] );
 
 		if ( is_admin() ) {
 			add_action( 'post_submitbox_misc_actions', [ $this, 'add_ui' ] );
@@ -364,18 +381,14 @@ class Archiveless {
 	}
 
 	/**
-	 * Return robots meta if archiveless.
+	 * Output noindex meta tag to prevent search engines from indexing archiveless
+	 * posts.
 	 */
-	public function no_index() {
-		global $post;
-
-		// Ensure there is a post ID before attempting to look up postmeta.
-		if ( empty( $post->ID ) ) {
+	public function on_wp_head() {
+		if ( ! is_singular() || ! static::is() ) {
 			return;
 		}
 
-		if ( '1' === get_post_meta( $post->ID, self::$meta_key, true ) ) {
-			echo '<meta name="robots" content="noindex,nofollow" />';
-		}
+		echo '<meta name="robots" content="noindex,nofollow" />';
 	}
 }

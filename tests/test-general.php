@@ -72,7 +72,23 @@ class Test_General extends Test_Case {
 	public function test_accesible_as_singular() {
 		$this->get( get_permalink( $this->archiveless_post ) )
 			->assertQueryTrue( 'is_singular', 'is_single' )
-			->assertQueriedObjectId( $this->archiveless_post );
+			->assertQueriedObjectId( $this->archiveless_post )
+			->assertElementExists( 'head/meta[@name="robots"][@content="noindex,nofollow"]' );
+	}
+
+	public function test_non_archiveless_post_singular() {
+		$this->get( get_permalink( $this->archiveable_post ) )
+			->assertQueryTrue( 'is_singular', 'is_single' )
+			->assertQueriedObjectId( $this->archiveable_post )
+			->assertElementMissing( 'head/meta[@name="robots"][@content="noindex,nofollow"]' );
+	}
+
+	public function test_archiveless_is_method() {
+		$this->assertTrue( Archiveless::is( $this->archiveless_post ) );
+		$this->assertTrue( Archiveless::is( get_post( $this->archiveless_post ) ) );
+
+		$this->assertFalse( Archiveless::is( $this->archiveable_post ) );
+		$this->assertFalse( Archiveless::is( get_post( $this->archiveable_post ) ) );
 	}
 
 	public function test_always_included_outside_of_main_query() {
