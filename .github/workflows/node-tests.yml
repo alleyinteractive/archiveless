@@ -6,7 +6,7 @@ on:
 
 jobs:
   node-tests:
-    uses: alleyinteractive/.github/.github/workflows/node-tests.yml@config-tests
+    uses: alleyinteractive/.github/.github/workflows/node-tests.yml@main
     with:
       node: 16
       run-test: false
