@@ -2,6 +2,8 @@
 /**
  * General test file
  *
+ * phpcs:disable WordPressVIPMinimum.Functions.RestrictedFunctions.get_posts_get_posts
+ *
  * @package Archiveless
  */
 
@@ -69,8 +71,65 @@ class Test_General extends Test_Case {
 
 	public function test_accesible_as_singular() {
 		$this->get( get_permalink( $this->archiveless_post ) )
+			->assertQueryTrue( 'is_singular', 'is_single' )
 			->assertQueriedObjectId( $this->archiveless_post )
-			->assertQueryTrue( 'is_singular', 'is_single' );
+			->assertElementExists( 'head/meta[@name="robots"][@content="noindex,nofollow"]' );
+	}
+
+	public function test_non_archiveless_post_singular() {
+		$this->get( get_permalink( $this->archiveable_post ) )
+			->assertQueryTrue( 'is_singular', 'is_single' )
+			->assertQueriedObjectId( $this->archiveable_post )
+			->assertElementMissing( 'head/meta[@name="robots"][@content="noindex,nofollow"]' );
+	}
+
+	public function test_archiveless_is_method() {
+		$this->assertTrue( Archiveless::is( $this->archiveless_post ) );
+		$this->assertTrue( Archiveless::is( get_post( $this->archiveless_post ) ) );
+
+		$this->assertFalse( Archiveless::is( $this->archiveable_post ) );
+		$this->assertFalse( Archiveless::is( get_post( $this->archiveable_post ) ) );
+	}
+
+	public function test_always_included_outside_of_main_query() {
+		$post_ids = get_posts(
+			[
+				'fields'           => 'ids',
+				'posts_per_page'   => 100,
+				'suppress_filters' => false,
+			]
+		);
+
+		$this->assertContains( $this->archiveless_post, $post_ids );
+		$this->assertContains( $this->archiveable_post, $post_ids );
+	}
+
+	public function test_query_archiveless_posts_only() {
+		$post_ids = get_posts(
+			[
+				'fields'           => 'ids',
+				'post_status'      => 'archiveless',
+				'posts_per_page'   => 100,
+				'suppress_filters' => false,
+			]
+		);
+
+		$this->assertContains( $this->archiveless_post, $post_ids );
+		$this->assertNotContains( $this->archiveable_post, $post_ids );
+	}
+
+	public function test_optionally_excluded_outside_of_main_query() {
+		$post_ids = get_posts(
+			[
+				'exclude_archiveless' => true,
+				'fields'              => 'ids',
+				'posts_per_page'      => 100,
+				'suppress_filters'    => false,
+			]
+		);
+
+		$this->assertNotContains( $this->archiveless_post, $post_ids );
+		$this->assertContains( $this->archiveable_post, $post_ids );
 	}
 
 	/**
@@ -82,7 +141,7 @@ class Test_General extends Test_Case {
 		$this->get( $url );
 
 		$this->assertFalse( is_singular() );
-		$this->assertTrue( call_user_func( $conditional ), "Asserting that {$conditional}() is true" );
+		$this->assertTrue( $conditional(), "Asserting that {$conditional}() is true" );
 		$this->assertTrue( have_posts() );
 		$this->assertContains( $this->archiveable_post, wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) );
 		$this->assertNotContains( $this->archiveless_post, wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) );
@@ -91,11 +150,11 @@ class Test_General extends Test_Case {
 	public function inaccessible() {
 		return [
 			[ '/', 'is_home' ], // Homepage.
-			[ '/?year=2015&monthnum=01', 'is_date' ], // Date archive.
-			[ '/?category_name=archives', 'is_category' ], // Tax archive.
-			[ '/?author_name=test_author', 'is_author' ], // Author archive.
+			[ '/2015/01/', 'is_date' ], // Date archive.
+			[ '/category/archives/', 'is_category' ], // Tax archive.
+			[ '/author/test_author/', 'is_author' ], // Author archive.
 			[ '/?s=Lorem+ipsum', 'is_search' ], // Search.
-			[ '/?feed=rss', 'is_feed' ], // Feeds.
+			[ '/rss/', 'is_feed' ], // Feeds.
 		];
 	}
 
@@ -154,5 +213,28 @@ class Test_General extends Test_Case {
 		// Update the post meta value and ensure it changes back to archiveless.
 		update_post_meta( $post_id, 'archiveless', '1' );
 		$this->assertEquals( 'archiveless', get_post_status( $post_id ) );
+	}
+
+	public function test_post_preview() {
+		$post_id = static::factory()->post->create(
+			[
+				'post_title'  => 'Test Archiveless Preview Post',
+				'post_status' => 'draft',
+			]
+		);
+
+		$this->get( get_preview_post_link( $post_id ) )->assertNotFound();
+		$this->get( remove_query_arg( 'preview', get_preview_post_link( $post_id ) ) )->assertNotFound();
+
+		$this->acting_as( 'editor' );
+
+		$this->get( get_preview_post_link( $post_id ) )
+			->assertOk()
+			->assertQueriedObjectId( $post_id );
+
+		// Attempt without 'preview' being passed.
+		$this->get( remove_query_arg( 'preview', get_preview_post_link( $post_id ) ) )
+			->assertOk()
+			->assertQueriedObjectId( $post_id );
 	}
 }

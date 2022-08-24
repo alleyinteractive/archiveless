@@ -6,5 +6,12 @@
  */
 
 \Mantle\Testing\manager()
-	->on( 'muplugins_loaded', fn () => require_once dirname( __FILE__ ) . '/../archiveless.php' )
+	->loaded(
+		function () {
+			require_once __DIR__ . '/../archiveless.php';
+
+			// Set the permalink structure.
+			update_option( 'permalink_structure', '/%year%/%monthnum%/%day%/%postname%/' );
+		} 
+	)
 	->install();
