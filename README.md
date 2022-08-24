@@ -26,12 +26,23 @@ Archiveless posts can be excluded from normal queries by passing
 `exclude_archiveless`:
 
 ```php
+// Via get_posts()/WP_Query.
 $posts = get_posts(
   [
     'exclude_archiveless' => true,
     'suppress_filters'    => false,
     // ...
   ]
+);
+
+// Via 'pre_get_posts'.
+add_action(
+  'pre_get_posts',
+  function ( $query ) {
+    if ( special_condition() ) {
+      $query->set( 'exclude_archiveless', true );
+    }
+  }
 );
 ```
 
@@ -45,6 +56,11 @@ download the plugin and compile the assets manually:
 npm install
 npm run build
 ```
+
+## Changelog
+
+Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed
+recently.
 
 ## Maintainers
 
