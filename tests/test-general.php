@@ -214,4 +214,27 @@ class Test_General extends Test_Case {
 		update_post_meta( $post_id, 'archiveless', '1' );
 		$this->assertEquals( 'archiveless', get_post_status( $post_id ) );
 	}
+
+	public function test_post_preview() {
+		$post_id = static::factory()->post->create(
+			[
+				'post_title'  => 'Test Archiveless Preview Post',
+				'post_status' => 'draft',
+			]
+		);
+
+		$this->get( get_preview_post_link( $post_id ) )->assertNotFound();
+		$this->get( remove_query_arg( 'preview', get_preview_post_link( $post_id ) ) )->assertNotFound();
+
+		$this->acting_as( 'editor' );
+
+		$this->get( get_preview_post_link( $post_id ) )
+			->assertOk()
+			->assertQueriedObjectId( $post_id );
+
+		// Attempt without 'preview' being passed.
+		$this->get( remove_query_arg( 'preview', get_preview_post_link( $post_id ) ) )
+			->assertOk()
+			->assertQueriedObjectId( $post_id );
+	}
 }
