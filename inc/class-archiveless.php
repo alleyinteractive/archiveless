@@ -337,11 +337,6 @@ class Archiveless {
 			return;
 		}
 
-		// Ignore any query for archiveless post specifically.
-		if ( ! empty( $query->get( 'post_status' ) ) && self::$status === $query->get( 'post_status' ) ) {
-			return;
-		}
-
 		$post_statuses = $this->get_default_post_statuses( $query );
 
 		// Determine if archiveless posts should be included or excluded from
