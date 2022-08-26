@@ -20,17 +20,19 @@ class Test_General extends Test_Case {
 
 	protected $archiveable_post;
 
+	protected $archiveable_post_custom_status;
+
 	protected function setUp(): void {
 		parent::setUp();
 
-		$category_id = $this->factory->term->create(
+		$category_id = static::factory()->term->create(
 			[
 				'taxonomy' => 'category',
 				'name'     => 'archives',
 			]
 		);
 
-		$author_id = $this->factory->user->create(
+		$author_id = static::factory()->user->create(
 			[
 				'role'        => 'author',
 				'user_login'  => 'test_author',
@@ -45,7 +47,7 @@ class Test_General extends Test_Case {
 			'post_content'  => 'Lorem ipsum',
 		];
 
-		$this->archiveless_post = $this->factory->post->create(
+		$this->archiveless_post = static::factory()->post->create(
 			array_merge(
 				$defaults,
 				[
@@ -54,7 +56,8 @@ class Test_General extends Test_Case {
 				]
 			)
 		);
-		$this->archiveable_post = $this->factory->post->create(
+
+		$this->archiveable_post = static::factory()->post->create(
 			array_merge(
 				$defaults,
 				[
@@ -62,6 +65,22 @@ class Test_General extends Test_Case {
 					'post_status' => 'publish',
 				]
 			)
+		);
+
+		// Register another custom post status that is public.
+		register_post_status(
+			'other-public-status',
+			[
+				'public'              => true,
+				'exclude_from_search' => false,
+			]
+		);
+
+		$this->archiveable_post_custom_status = static::factory()->post->create(
+			[
+				'post_title'  => 'Test Archiveless Post',
+				'post_status' => 'other-public-status',
+			]
 		);
 	}
 
@@ -250,5 +269,40 @@ class Test_General extends Test_Case {
 		$this->get( remove_query_arg( 'preview', get_preview_post_link( $post_id ) ) )
 			->assertOk()
 			->assertQueriedObjectId( $post_id );
+	}
+
+	public function test_custom_post_status_singular() {
+		$this->get( get_permalink( $this->archiveable_post_custom_status ) )
+			->assertOk()
+			->assertElementMissing( 'head/meta[@name="robots"][@content="noindex,nofollow"]' );
+	}
+
+	public function test_custom_post_status_query_included() {
+		// Ensure the custom post status is queryable.
+		$post_ids = get_posts(
+			[
+				'fields'           => 'ids',
+				'posts_per_page'   => 100,
+				'suppress_filters' => false,
+			]
+		);
+
+		$this->assertContains( $this->archiveable_post_custom_status, $post_ids );
+		$this->assertContains( $this->archiveable_post, $post_ids );
+		$this->assertContains( $this->archiveless_post, $post_ids );
+
+		// Make the query again but exclude the archiveless post.
+		$post_ids = get_posts(
+			[
+				'exclude_archiveless' => true,
+				'fields'              => 'ids',
+				'posts_per_page'      => 100,
+				'suppress_filters'    => false,
+			]
+		);
+
+		$this->assertContains( $this->archiveable_post_custom_status, $post_ids );
+		$this->assertContains( $this->archiveable_post, $post_ids );
+		$this->assertNotContains( $this->archiveless_post, $post_ids );
 	}
 }
