@@ -380,7 +380,6 @@ class Archiveless {
 			get_post_stati(
 				[
 					'exclude_from_search' => false,
-					'publicly_queryable'  => true,
 				]
 			)
 		);
