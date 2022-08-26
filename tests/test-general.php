@@ -91,12 +91,26 @@ class Test_General extends Test_Case {
 		$this->assertFalse( Archiveless::is( get_post( $this->archiveable_post ) ) );
 	}
 
-	public function test_always_included_outside_of_main_query() {
+	public function test_always_included_outside_of_main_query_by_default() {
 		$post_ids = get_posts(
 			[
 				'fields'           => 'ids',
 				'posts_per_page'   => 100,
 				'suppress_filters' => false,
+			]
+		);
+
+		$this->assertContains( $this->archiveless_post, $post_ids );
+		$this->assertContains( $this->archiveable_post, $post_ids );
+	}
+
+	public function test_always_included_outside_of_main_query_with_post_status_any() {
+		$post_ids = get_posts(
+			[
+				'fields'           => 'ids',
+				'posts_per_page'   => 100,
+				'suppress_filters' => false,
+				'post_status'      => 'any',
 			]
 		);
 
@@ -118,7 +132,7 @@ class Test_General extends Test_Case {
 		$this->assertNotContains( $this->archiveable_post, $post_ids );
 	}
 
-	public function test_optionally_excluded_outside_of_main_query() {
+	public function test_optionally_excluded_outside_of_main_query_with_exclude_archiveless() {
 		$post_ids = get_posts(
 			[
 				'exclude_archiveless' => true,
