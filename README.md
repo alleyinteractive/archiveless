@@ -17,8 +17,7 @@ older content that shouldn't appear in search results because it is untimely.
 
 ## Usage
 
-By default, the plugin will prevent archiveless posts from appearing on page.
-This is limited to the [main
+By default, the plugin will prevent archiveless posts from appearing on the page. This is limited to the [main
 query](https://developer.wordpress.org/reference/functions/is_main_query/) of
 the page. It will not affect other queries by default.
 
@@ -26,11 +25,9 @@ Archiveless posts can be excluded from normal queries by passing
 `exclude_archiveless`:
 
 ```php
-// Via get_posts()/WP_Query.
-$posts = get_posts(
+$query = new WP_Query(
   [
     'exclude_archiveless' => true,
-    'suppress_filters'    => false,
     // ...
   ]
 );
@@ -43,6 +40,24 @@ add_action(
       $query->set( 'exclude_archiveless', true );
     }
   }
+);
+```
+
+### Handling archiveless posts with `get_posts()` calls
+
+Queries made with `get_posts()` will always exclude archiveless posts by default
+since `get_posts()` sets a default `post_status` of `publish`. To include
+archiveless posts, you can specify the `post_status` of `[ 'publish',
+'archiveless' ]` or pass `include_archiveless` set to true:
+
+```php
+// $post_ids will include archiveless posts.
+$post_ids = get_posts(
+  [
+    'fields'              => 'ids',
+    'include_archiveless' => true,
+    'suppress_filters'    => false,
+  ]
 );
 ```
 
