@@ -16,7 +16,7 @@
     },
     "require-dev": {
         "alleyinteractive/alley-coding-standards": "^0.3",
-        "mantle-framework/testkit": "^0.5"
+        "mantle-framework/testkit": "^0.6"
     },
     "config": {
         "allow-plugins": {
