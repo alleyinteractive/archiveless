@@ -333,16 +333,19 @@ class Archiveless {
 		/**
 		 * Don't modify the query if the post_status is set.
 		 *
-		 * A `post_status` of 'publish' is ignored since get_post() sets 'publish'
-		 * as the default post_status value when not defined.
-		 *
 		 * A `post_status` of 'any' is ignored since we need to include archiveless
 		 * posts because the post_status will be excluded by default (the post
 		 * status is set to be excluded from search).
+		 *
+		 * `get_posts()` will set a default `post_status` of `publish` that is
+		 * respected. To include archiveless posts, set `post_status` to
+		 * `['publish', 'archiveless']` or pass `include_archiveless` as true.
 		 */
 		if (
 			! empty( $query->get( 'post_status' ) )
-			&& ! in_array( $query->get( 'post_status' ), [ 'publish', 'any' ], true )
+			&& 'any' !== $query->get( 'post_status' )
+			&& ! isset( $query->query_vars['include_archiveless'] )
+			&& ! isset( $query->query_vars['exclude_archiveless'] )
 		) {
 			return;
 		}
@@ -354,6 +357,7 @@ class Archiveless {
 		if (
 			( $query->is_main_query() && $query->is_singular() )
 			|| ( ! $query->is_main_query() && ! $query->get( 'exclude_archiveless' ) )
+			|| $query->get( 'include_archiveless' )
 		) {
 			$query->set(
 				'post_status',
