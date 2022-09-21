@@ -47,8 +47,9 @@ add_action(
 
 Queries made with `get_posts()` will always exclude archiveless posts by default
 since `get_posts()` sets a default `post_status` of `publish`. To include
-archiveless posts, you can specify the `post_status` of `[ 'publish',
-'archiveless' ]` or pass `include_archiveless` set to true:
+archiveless posts, you can specify the `post_status` of `any`, declare the
+`post_status` explicitly with `[ 'publish', 'archiveless' ]`, or pass
+`include_archiveless` set to true:
 
 ```php
 // $post_ids will include archiveless posts.
@@ -57,6 +58,15 @@ $post_ids = get_posts(
     'fields'              => 'ids',
     'include_archiveless' => true,
     'suppress_filters'    => false,
+  ]
+);
+
+// Or declare the post_status explicitly.
+$post_ids = get_posts(
+  [
+    'fields'              => 'ids',
+    'suppress_filters'    => false,
+    'post_status'         => [ 'archiveless', 'publish' ],
   ]
 );
 ```

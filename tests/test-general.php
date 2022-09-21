@@ -182,6 +182,20 @@ class Test_General extends Test_Case {
 		$this->assertContains( $this->archiveable_post, $post_ids );
 	}
 
+	public function test_always_included_outside_of_main_query_with_post_status_any_with_get_posts() {
+		$post_ids = get_posts(
+			[
+				'fields'           => 'ids',
+				'posts_per_page'   => 100,
+				'suppress_filters' => false,
+				'post_status'      => 'any',
+			]
+		);
+
+		$this->assertContains( $this->archiveless_post, $post_ids );
+		$this->assertContains( $this->archiveable_post, $post_ids );
+	}
+
 	public function test_query_archiveless_posts_only() {
 		$post_ids = $this->query(
 			[

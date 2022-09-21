@@ -380,13 +380,24 @@ class Archiveless {
 	 * @return string[]
 	 */
 	public function get_default_post_statuses( $query ) {
-		return array_keys(
-			get_post_stati(
-				[
-					'exclude_from_search' => false,
-				]
+		$post_statuses = $query->get( 'post_status', [] );
+
+		if ( ! is_array( $post_statuses ) ) {
+			$post_statuses = explode( ',', $post_statuses );
+		}
+
+		$post_statuses = array_merge(
+			$post_statuses,
+			array_keys(
+				get_post_stati(
+					[
+						'exclude_from_search' => false,
+					]
+				)
 			)
 		);
+
+		return array_values( array_unique( $post_statuses ) );
 	}
 
 	/**
