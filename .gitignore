@@ -1,9 +1,9 @@
 # Build files
-build
 bower_components
 node_modules
-vendor
 composer.lock
+package-lock.json
+.phpcs
 
 # Log files
 *.log
@@ -11,6 +11,7 @@ composer.lock
 # Cache files
 .phpcs/*.json
 .phpunit.result.cache
+DOCKER_ENV
 
 # Ignore temporary OS files
 .DS_Store
@@ -25,3 +26,5 @@ Thumbs.db
 *.code-workspace
 .idea
 .vscode
+
+tests
