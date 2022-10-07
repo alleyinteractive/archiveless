@@ -20,17 +20,19 @@ class Test_General extends Test_Case {
 
 	protected $archiveable_post;
 
+	protected $archiveable_post_custom_status;
+
 	protected function setUp(): void {
 		parent::setUp();
 
-		$category_id = $this->factory->term->create(
+		$category_id = static::factory()->term->create(
 			[
 				'taxonomy' => 'category',
 				'name'     => 'archives',
 			]
 		);
 
-		$author_id = $this->factory->user->create(
+		$author_id = static::factory()->user->create(
 			[
 				'role'        => 'author',
 				'user_login'  => 'test_author',
@@ -45,7 +47,7 @@ class Test_General extends Test_Case {
 			'post_content'  => 'Lorem ipsum',
 		];
 
-		$this->archiveless_post = $this->factory->post->create(
+		$this->archiveless_post = static::factory()->post->create(
 			array_merge(
 				$defaults,
 				[
@@ -54,7 +56,8 @@ class Test_General extends Test_Case {
 				]
 			)
 		);
-		$this->archiveable_post = $this->factory->post->create(
+
+		$this->archiveable_post = static::factory()->post->create(
 			array_merge(
 				$defaults,
 				[
@@ -62,6 +65,22 @@ class Test_General extends Test_Case {
 					'post_status' => 'publish',
 				]
 			)
+		);
+
+		// Register another custom post status that is public.
+		register_post_status(
+			'other-public-status',
+			[
+				'public'              => true,
+				'exclude_from_search' => false,
+			]
+		);
+
+		$this->archiveable_post_custom_status = static::factory()->post->create(
+			[
+				'post_title'  => 'Test Archiveless Post',
+				'post_status' => 'other-public-status',
+			]
 		);
 	}
 
@@ -91,11 +110,11 @@ class Test_General extends Test_Case {
 		$this->assertFalse( Archiveless::is( get_post( $this->archiveable_post ) ) );
 	}
 
-	public function test_always_included_outside_of_main_query() {
-		$post_ids = get_posts(
+	public function test_always_included_outside_of_main_query_by_default_with_wp_query() {
+		$post_ids = $this->query(
 			[
 				'fields'           => 'ids',
-				'posts_per_page'   => 100,
+				'posts_per_page'   => -1,
 				'suppress_filters' => false,
 			]
 		);
@@ -104,8 +123,81 @@ class Test_General extends Test_Case {
 		$this->assertContains( $this->archiveable_post, $post_ids );
 	}
 
-	public function test_query_archiveless_posts_only() {
+	/**
+	 * Test that archiveless posts are included in get_posts() calls by default.
+	 * get_posts() sets a default post_status argument of 'publish'.
+	 */
+	public function test_not_included_with_get_posts_by_default() {
 		$post_ids = get_posts(
+			[
+				'fields'           => 'ids',
+				'posts_per_page'   => -1,
+				'suppress_filters' => false,
+			]
+		);
+
+		$this->assertNotContains( $this->archiveless_post, $post_ids );
+		$this->assertContains( $this->archiveable_post, $post_ids );
+	}
+
+	public function test_always_included_outside_of_main_query_with_post_status_publish_with_get_posts_and_post_statuses() {
+		$post_ids = get_posts(
+			[
+				'fields'           => 'ids',
+				'post_status'      => [ 'archiveless', 'publish' ],
+				'posts_per_page'   => -1,
+				'suppress_filters' => false,
+			]
+		);
+
+		$this->assertContains( $this->archiveless_post, $post_ids );
+		$this->assertContains( $this->archiveable_post, $post_ids );
+	}
+
+	public function test_always_included_outside_of_main_query_with_post_status_publish_with_get_posts_and_include_archiveless() {
+		$post_ids = get_posts(
+			[
+				'fields'              => 'ids',
+				'include_archiveless' => true,
+				'posts_per_page'      => -1,
+				'suppress_filters'    => false,
+			]
+		);
+
+		$this->assertContains( $this->archiveless_post, $post_ids );
+		$this->assertContains( $this->archiveable_post, $post_ids );
+	}
+
+	public function test_always_included_outside_of_main_query_with_post_status_any_with_wp_query() {
+		$post_ids = $this->query(
+			[
+				'fields'           => 'ids',
+				'posts_per_page'   => 100,
+				'suppress_filters' => false,
+				'post_status'      => 'any',
+			]
+		);
+
+		$this->assertContains( $this->archiveless_post, $post_ids );
+		$this->assertContains( $this->archiveable_post, $post_ids );
+	}
+
+	public function test_always_included_outside_of_main_query_with_post_status_any_with_get_posts() {
+		$post_ids = get_posts(
+			[
+				'fields'           => 'ids',
+				'posts_per_page'   => 100,
+				'suppress_filters' => false,
+				'post_status'      => 'any',
+			]
+		);
+
+		$this->assertContains( $this->archiveless_post, $post_ids );
+		$this->assertContains( $this->archiveable_post, $post_ids );
+	}
+
+	public function test_query_archiveless_posts_only() {
+		$post_ids = $this->query(
 			[
 				'fields'           => 'ids',
 				'post_status'      => 'archiveless',
@@ -118,8 +210,8 @@ class Test_General extends Test_Case {
 		$this->assertNotContains( $this->archiveable_post, $post_ids );
 	}
 
-	public function test_optionally_excluded_outside_of_main_query() {
-		$post_ids = get_posts(
+	public function test_optionally_excluded_outside_of_main_query_with_exclude_archiveless() {
+		$post_ids = $this->query(
 			[
 				'exclude_archiveless' => true,
 				'fields'              => 'ids',
@@ -236,5 +328,54 @@ class Test_General extends Test_Case {
 		$this->get( remove_query_arg( 'preview', get_preview_post_link( $post_id ) ) )
 			->assertOk()
 			->assertQueriedObjectId( $post_id );
+	}
+
+	public function test_custom_post_status_singular() {
+		$this->get( get_permalink( $this->archiveable_post_custom_status ) )
+			->assertOk()
+			->assertElementMissing( 'head/meta[@name="robots"][@content="noindex,nofollow"]' );
+	}
+
+	public function test_custom_post_status_query_included() {
+		// Ensure the custom post status is queryable.
+		$post_ids = $this->query(
+			[
+				'fields'           => 'ids',
+				'posts_per_page'   => 100,
+				'suppress_filters' => false,
+			]
+		);
+
+		$this->assertContains( $this->archiveable_post_custom_status, $post_ids );
+		$this->assertContains( $this->archiveable_post, $post_ids );
+		$this->assertContains( $this->archiveless_post, $post_ids );
+
+		// Make the query again but exclude the archiveless post.
+		$post_ids = $this->query(
+			[
+				'exclude_archiveless' => true,
+				'fields'              => 'ids',
+				'posts_per_page'      => 100,
+				'suppress_filters'    => false,
+			]
+		);
+
+		$this->assertContains( $this->archiveable_post_custom_status, $post_ids );
+		$this->assertContains( $this->archiveable_post, $post_ids );
+		$this->assertNotContains( $this->archiveless_post, $post_ids );
+	}
+
+	/**
+	 * Make a query and retrieve with WP_Query the posts only.
+	 *
+	 * Similar to `get_posts()` but does not set any defaults like `get_posts()` does.
+	 *
+	 * @param array $args Query arguments.
+	 * @return array \WP_Post[]|int[] Array of posts.
+	 */
+	protected function query( array $args ): array {
+		$query = new \WP_Query( $args );
+
+		return $query->posts;
 	}
 }

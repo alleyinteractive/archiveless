@@ -330,13 +330,22 @@ class Archiveless {
 			return;
 		}
 
-		// Don't modify the query if the post_status is set. A status of 'any'
-		// or 'publish' is ignored since get_post() sets 'publish' as the
-		// default post_status value when not defined.
+		/**
+		 * Don't modify the query if the post_status is set.
+		 *
+		 * A `post_status` of 'any' is ignored since we need to include archiveless
+		 * posts because the post_status will be excluded by default (the post
+		 * status is set to be excluded from search).
+		 *
+		 * `get_posts()` will set a default `post_status` of `publish` that is
+		 * respected. To include archiveless posts, set `post_status` to
+		 * `['publish', 'archiveless']` or pass `include_archiveless` as true.
+		 */
 		if (
 			! empty( $query->get( 'post_status' ) )
 			&& 'any' !== $query->get( 'post_status' )
-			&& 'publish' !== $query->get( 'post_status' )
+			&& ! isset( $query->query_vars['include_archiveless'] )
+			&& ! isset( $query->query_vars['exclude_archiveless'] )
 		) {
 			return;
 		}
@@ -348,6 +357,7 @@ class Archiveless {
 		if (
 			( $query->is_main_query() && $query->is_singular() )
 			|| ( ! $query->is_main_query() && ! $query->get( 'exclude_archiveless' ) )
+			|| $query->get( 'include_archiveless' )
 		) {
 			$query->set(
 				'post_status',
@@ -370,14 +380,24 @@ class Archiveless {
 	 * @return string[]
 	 */
 	public function get_default_post_statuses( $query ) {
-		return array_keys(
-			get_post_stati(
-				[
-					'exclude_from_search' => false,
-					'publicly_queryable'  => true,
-				]
+		$post_statuses = $query->get( 'post_status', [] );
+
+		if ( ! is_array( $post_statuses ) ) {
+			$post_statuses = explode( ',', $post_statuses );
+		}
+
+		$post_statuses = array_merge(
+			$post_statuses,
+			array_keys(
+				get_post_stati(
+					[
+						'exclude_from_search' => false,
+					]
+				)
 			)
 		);
+
+		return array_values( array_unique( $post_statuses ) );
 	}
 
 	/**
