@@ -68,6 +68,8 @@ class Archiveless {
 		if ( is_admin() ) {
 			add_action( 'post_submitbox_misc_actions', [ $this, 'add_ui' ] );
 			add_action( 'add_meta_boxes', [ $this, 'fool_edit_form' ] );
+			add_filter( 'manage_post_posts_columns', [ $this, 'post_columns' ] );
+			add_action( 'manage_post_posts_custom_column', [ $this, 'post_custom_column_content' ], 10, 2 );
 		} else {
 			// Later priority to mirror the previous use of posts_where.
 			add_action( 'pre_get_posts', [ $this, 'on_pre_get_posts' ], 20 );
@@ -410,5 +412,28 @@ class Archiveless {
 		}
 
 		echo '<meta name="robots" content="noindex,nofollow" />';
+	}
+
+	/**
+	 * Add Archiveless column to posts list.
+	 *
+	 * @param array $columns Array of column headings.
+	 */
+	public function post_columns( $columns ) {
+		$columns['archiveless'] = __( 'Archiveless', 'archiveless' );
+
+		return $columns;
+	}
+
+	/**
+	 * Populate "Archiveless" column on posts list with checkbox.
+	 *
+	 * @param string $column_key Column key.
+	 * @param int    $post_id Post ID.
+	 */
+	public function post_custom_column_content( $column_key, $post_id ) {
+		if ( $column_key == 'archiveless' ) {
+			echo ( 1 === (int) get_post_meta( $post_id, self::$meta_key ) ) ? '&#9746;' : '&#9744;';
+		}
 	}
 }
