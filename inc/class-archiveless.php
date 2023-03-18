@@ -432,7 +432,7 @@ class Archiveless {
 	 * @param int    $post_id Post ID.
 	 */
 	public function post_custom_column_content( $column_key, $post_id ) {
-		if ( $column_key == 'archiveless' ) {
+		if ( 'archiveless' === $column_key ) {
 			echo ( 1 === (int) get_post_meta( $post_id, self::$meta_key ) ) ? '&#9746;' : '&#9744;';
 		}
 	}
