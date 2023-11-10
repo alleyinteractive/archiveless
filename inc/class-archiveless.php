@@ -224,15 +224,46 @@ class Archiveless {
 	}
 
 	/**
-	 * Add a filter to all post types for REST response modification.
-	 *
-	 * @return void
+	 * Filters to all post types with REST support.
 	 */
-	public function filter_rest_response() {
-		// Override the post status in the REST response to avoid Gutenbugs.
-		foreach ( get_post_types() as $allowed_post_type ) {
-			add_filter( 'rest_prepare_' . $allowed_post_type, [ $this, 'rest_prepare_post_data' ] );
+	public function filter_rest_response(): void {
+		foreach ( get_post_types( [ 'show_in_rest' => true ] ) as $allowed_post_type ) {
+			// Override the post status in the REST response to avoid Gutenbugs.
+			add_filter( "rest_prepare_{$allowed_post_type}", [ $this, 'filter__rest_prepare_post_data' ] );
+
+			// Add the `include_archiveless` parameter to the REST API.
+			add_filter( "rest_{$allowed_post_type}_query", [ $this, 'filter__rest_post_type_query' ], 10, 2 );
 		}
+	}
+
+	/**
+	 * Filter the REST API query, with the edit context, to include archiveless posts.
+	 *
+	 *
+	 * @param array           $args    Array of arguments for WP_Query.
+	 * @param WP_REST_Request $request The REST API request.
+	 * @return array
+	 */
+	function filter__rest_post_type_query( $args, $request ): array {
+		/**
+		 * Check the edit context from WP_REST_Request.
+		 *
+		 * That means we can reasonably assume that REST API requests using the `edit` context,
+		 * in the back-end or front-end of the site, are being performed for editing purposes,
+		 * where we want to show the `archived` posts.
+		 *
+		 * @see <https://github.com/alleyinteractive/archiveless/issues/61>
+		 */
+		if ( 'edit' !== $request->get_param( 'context' ) ) {
+			return $args;
+		}
+
+		// Respect any existing query rules.
+		if ( ! isset( $args['include_archiveless'] ) ) {
+			$args['include_archiveless'] = true;
+		}
+
+		return $args;
 	}
 
 	/**
@@ -241,7 +272,7 @@ class Archiveless {
 	 * @param WP_REST_Response $response The response object.
 	 * @return WP_REST_Response The modified response.
 	 */
-	public function rest_prepare_post_data( $response ) {
+	public function filter__rest_prepare_post_data( $response ) {
 		// Override the post status if it is 'archiveless'.
 		if ( ! empty( $response->data['status'] ) && self::$status === $response->data['status'] ) {
 			$response->data['status'] = 'publish';
