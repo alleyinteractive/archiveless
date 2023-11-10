@@ -9,7 +9,10 @@ All notable changes to this plugin will be documented in this file.
 - Composer: upgraded packages;
 - PHPStan: added support;
 - Bumped the plugin version from `0.2` to `1.1.2`;
-- Tested the plugin with the WordPress 6.4.
+- Tested the plugin with the WordPress 6.4;
+- Use `declare(strict_types=1);`, when possible;
+- Update Alley domain to `https://alley.com`;
+
 
 ## 1.1.1
 
