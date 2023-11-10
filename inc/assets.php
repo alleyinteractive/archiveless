@@ -5,6 +5,8 @@
  * @package Archiveless
  */
 
+declare(strict_types=1);
+
 namespace Archiveless;
 
 use Archiveless;
@@ -21,7 +23,7 @@ add_action(
 /**
  * A callback for the enqueue_block_editor_assets action hook.
  */
-function action_enqueue_block_editor_assets() {
+function action_enqueue_block_editor_assets(): void {
 	if ( ! Archiveless::instance()->is_block_editor() ) {
 		return;
 	}
@@ -40,10 +42,9 @@ function action_enqueue_block_editor_assets() {
  * Gets asset dependencies from the generated asset manifest.
  *
  * @param string $asset Entry point and asset type separated by a '.'.
- *
- * @return array An array of dependencies for this asset.
+ * @return array<string, string> An array of dependencies for this asset.
  */
-function get_asset_dependencies( string $asset ) : array {
+function get_asset_dependencies( string $asset ): array {
 	// Get the path to the PHP file containing the dependencies.
 	$dependency_file = get_asset_path( $asset, true );
 	if ( empty( $dependency_file ) ) {
@@ -58,6 +59,7 @@ function get_asset_dependencies( string $asset ) : array {
 	// Try to load the dependencies.
 	// phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.UsingVariable
 	$dependencies = require $dependency_file;
+
 	if ( empty( $dependencies['dependencies'] ) || ! is_array( $dependencies['dependencies'] ) ) {
 		return [];
 	}
@@ -69,10 +71,9 @@ function get_asset_dependencies( string $asset ) : array {
  * Get the contentHash for a given asset.
  *
  * @param string $asset Entry point and asset type separated by a '.'.
- *
  * @return string The asset's hash.
  */
-function get_asset_hash( string $asset ) : string {
+function get_asset_hash( string $asset ): string {
 	return get_asset_property( $asset, 'hash' )
 		?? ARCHIVELESS_ASSET_MAP['hash']
 		?? '1.0.0';
@@ -83,10 +84,9 @@ function get_asset_hash( string $asset ) : string {
  *
  * @param string  $asset Entry point and asset type separated by a '.'.
  * @param boolean $dir   Optional. Whether to return the directory path or the plugin URL path. Defaults to false (returns URL).
- *
  * @return string The asset URL.
  */
-function get_asset_path( string $asset, bool $dir = false ) : string {
+function get_asset_path( string $asset, bool $dir = false ): string {
 	// Try to get the relative path.
 	$relative_path = get_asset_property( $asset, 'path' );
 	if ( empty( $relative_path ) ) {
@@ -106,19 +106,16 @@ function get_asset_path( string $asset, bool $dir = false ) : string {
  *
  * @param string $asset Entry point and asset type separated by a '.'.
  * @param string $prop The property to get from the entry object.
- *
  * @return string|null The asset property based on entry and type.
  */
-function get_asset_property( string $asset, string $prop ) : ?string {
+function get_asset_property( string $asset, string $prop ): ?string {
 	/*
 	 * Appending a '.' ensures the explode() doesn't generate a notice while
 	 * allowing the variable names to be more readable via list().
 	 */
 	list( $entrypoint, $type ) = explode( '.', "$asset." );
 
-	$asset_property = ARCHIVELESS_ASSET_MAP[ $entrypoint ][ $type ][ $prop ] ?? null;
-
-	return $asset_property ? $asset_property : null;
+	return ARCHIVELESS_ASSET_MAP[ $entrypoint ][ $type ][ $prop ] ?? null;
 }
 
 /**
@@ -126,7 +123,7 @@ function get_asset_property( string $asset, string $prop ) : ?string {
  *
  * @param string $to_handle The script handle to attach the inline script to.
  */
-function inline_locale_data( string $to_handle ) {
+function inline_locale_data( string $to_handle ): void {
 	// Define locale data for Jed.
 	$locale_data = [
 		'' => [
@@ -146,14 +143,18 @@ function inline_locale_data( string $to_handle ) {
  * Decode the asset map at the given file path.
  *
  * @param string $path File path.
- *
- * @return array The asset map.
+ * @return array<string, string> The asset map.
  */
-function read_asset_map( string $path ) : array {
+function read_asset_map( string $path ): array {
 	if ( file_exists( $path ) && 0 === validate_file( $path ) ) {
 		ob_start();
 		include $path; // phpcs:ignore WordPressVIPMinimum.Files.IncludingFile.IncludingFile, WordPressVIPMinimum.Files.IncludingFile.UsingVariable
-		return json_decode( ob_get_clean(), true );
+
+		$retval = json_decode( (string) ob_get_clean(), true );
+
+		if ( is_array( $retval ) ) {
+			return $retval;
+		}
 	}
 
 	return [];

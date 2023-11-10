@@ -3,12 +3,12 @@
  * Plugin Name: Archiveless
  * Plugin URI: https://github.com/alleyinteractive/archiveless
  * Description: Hide posts from archives performantly
- * Version: 0.2
+ * Version: 1.1.2
  * Author: Alley Interactive
- * Author URI: https://alley.co/
+ * Author URI: https://alley.com
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Tested up to: 6.2
+ * Tested up to: 6.4
  * Requires PHP: 8.0
  *
  * @package Archiveless
@@ -32,5 +32,10 @@
 require_once __DIR__ . '/inc/assets.php';
 require_once __DIR__ . '/inc/class-archiveless.php';
 
-// Add action hook to initialize the plugin.
-add_action( 'after_setup_theme', [ 'Archiveless', 'instance' ] );
+// Initialize Archiveless.
+add_action(
+	'after_setup_theme',
+	function (): void {
+		Archiveless::instance();
+	}
+);

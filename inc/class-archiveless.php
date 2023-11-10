@@ -5,6 +5,8 @@
  * @package Archiveless
  */
 
+declare(strict_types=1);
+
 /**
  * The main class for the Archiveless plugin.
  */
@@ -79,8 +81,8 @@ class Archiveless {
 	 *
 	 * @return Archiveless The active instance of the class.
 	 */
-	public static function instance() {
-		if ( ! isset( self::$instance ) ) {
+	public static function instance(): Archiveless {
+		if ( ! self::$instance instanceof Archiveless ) {
 			self::$instance = new Archiveless();
 		}
 		return self::$instance;
@@ -90,7 +92,7 @@ class Archiveless {
 	 * Determine if gutenberg editor exists and
 	 * the post type has support for the `custom-fields`.
 	 *
-	 * @return boolean
+	 * @return bool
 	 */
 	public function is_block_editor(): bool {
 		$is_block_editor = false;
@@ -113,35 +115,36 @@ class Archiveless {
 
 	/**
 	 * Register the custom post status.
+	 *
+	 * @see register_post_status().
 	 */
-	public function register_post_status() {
+	public function register_post_status(): void {
 		/**
 		 * Filters the arguments passed to `register_post_status()`.
 		 *
-		 * @see register_post_status().
+		 * @param array $args The arguments passed to `register_post_status()`.
 		 */
-		register_post_status(
-			self::$status,
-			apply_filters(
-				'archiveless_post_status_args',
-				[
-					'label'                     => __( 'Hidden from Archives', 'archiveless' ),
-					// translators: post count.
-					'label_count'               => _n_noop( 'Hidden from Archives <span class="count">(%s)</span>', 'Hidden from Archives <span class="count">(%s)</span>', 'archiveless' ),
-					'exclude_from_search'       => true,
-					'public'                    => true,
-					'publicly_queryable'        => true,
-					'show_in_admin_status_list' => true,
-					'show_in_admin_all_list'    => true,
-				]
-			)
+		$args = apply_filters(
+			'archiveless_post_status_args',
+			[
+				'label'                     => __( 'Hidden from Archives', 'archiveless' ),
+				// translators: post count.
+				'label_count'               => _n_noop( 'Hidden from Archives <span class="count">(%s)</span>', 'Hidden from Archives <span class="count">(%s)</span>', 'archiveless' ),
+				'exclude_from_search'       => true,
+				'public'                    => true,
+				'publicly_queryable'        => true,
+				'show_in_admin_status_list' => true,
+				'show_in_admin_all_list'    => true,
+			]
 		);
+
+		register_post_status( self::$status, $args );
 	}
 
 	/**
 	 * Register the custom post meta.
 	 */
-	public function register_post_meta() {
+	public function register_post_meta(): void {
 		register_post_meta(
 			'',
 			self::$meta_key,
@@ -157,8 +160,10 @@ class Archiveless {
 	/**
 	 * Add the checkbox to the post edit screen to give the option to hide a
 	 * post from archives.
+	 *
+	 * @global WP_Post $post The current post object.
 	 */
-	public function add_ui() {
+	public function add_ui(): void {
 		global $post;
 
 		// Ensure there is a post ID before attempting to look up postmeta.
@@ -186,7 +191,7 @@ class Archiveless {
 	 * @param string $meta_key    Metadata key.
 	 * @param mixed  $meta_value Metadata value. Serialized if non-scalar.
 	 */
-	public function updated_post_meta( $meta_id, $object_id, $meta_key, $meta_value ) {
+	public function updated_post_meta( $meta_id, $object_id, $meta_key, $meta_value ): void {
 		// Only handle updates to this plugin's meta key.
 		if ( self::$meta_key !== $meta_key ) {
 			return;
@@ -225,10 +230,8 @@ class Archiveless {
 
 	/**
 	 * Add a filter to all post types for REST response modification.
-	 *
-	 * @return void
 	 */
-	public function filter_rest_response() {
+	public function filter_rest_response(): void {
 		// Override the post status in the REST response to avoid Gutenbugs.
 		foreach ( get_post_types() as $allowed_post_type ) {
 			add_filter( 'rest_prepare_' . $allowed_post_type, [ $this, 'rest_prepare_post_data' ] );
@@ -241,7 +244,7 @@ class Archiveless {
 	 * @param WP_REST_Response $response The response object.
 	 * @return WP_REST_Response The modified response.
 	 */
-	public function rest_prepare_post_data( $response ) {
+	public function rest_prepare_post_data( $response ): WP_REST_Response {
 		// Override the post status if it is 'archiveless'.
 		if ( ! empty( $response->data['status'] ) && self::$status === $response->data['status'] ) {
 			$response->data['status'] = 'publish';
@@ -257,7 +260,7 @@ class Archiveless {
 	 * @param string  $old_status Old post status.
 	 * @param WP_Post $post       Post object.
 	 */
-	public function transition_post_status( $new_status, $old_status, $post ) {
+	public function transition_post_status( $new_status, $old_status, $post ): void {
 		// Only fire if transitioning to publish.
 		if ( 'publish' !== $new_status || $new_status === $old_status ) {
 			return;
@@ -270,15 +273,16 @@ class Archiveless {
 
 		// Change the post status to `archiveless` and update.
 		$post->post_status = self::$status;
+
 		wp_update_post( $post );
 	}
 
 	/**
 	 * Store the value of the "Hide form Archives" checkbox to post meta.
 	 *
-	 * @param  int $post_id Post ID.
+	 * @param int $post_id Post ID.
 	 */
-	public function save_post( $post_id ) {
+	public function save_post( $post_id ): void {
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		if ( isset( $_POST[ self::$meta_key ] ) ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing
@@ -290,8 +294,10 @@ class Archiveless {
 	 * Fool the edit screen into thinking that an archiveless post status is
 	 * actually 'publish'. This lets WordPress use its hard-coded post statuses
 	 * seamlessly.
+	 *
+	 * @global WP_Post $post The current post object.
 	 */
-	public function fool_edit_form() {
+	public function fool_edit_form(): void {
 		global $post;
 
 		// Ensure there is a post status before attempting to set it.
@@ -310,9 +316,9 @@ class Archiveless {
 	 * Optionally allow archiveless posts to be hidden for other queries by
 	 * passing 'exclude_archiveless'.
 	 *
-	 * @param \WP_Query $query Current WP_Query object.
+	 * @param WP_Query $query Current WP_Query object.
 	 */
-	public function on_pre_get_posts( $query ) {
+	public function on_pre_get_posts( $query ): void {
 		// Ignore all post previews.
 		if ( $query->is_preview() || $query->get( 'p' ) ) {
 			return;
@@ -376,10 +382,10 @@ class Archiveless {
 	 * Retrieve the default post statuses to show for a request.
 	 * Imitates the default behavior of WP_Query.
 	 *
-	 * @param \WP_Query $query Current WP_Query object.
+	 * @param WP_Query $query Current WP_Query object.
 	 * @return string[]
 	 */
-	public function get_default_post_statuses( $query ) {
+	public function get_default_post_statuses( $query ): array {
 		$post_statuses = $query->get( 'post_status', [] );
 
 		if ( ! is_array( $post_statuses ) ) {
@@ -404,7 +410,7 @@ class Archiveless {
 	 * Output noindex meta tag to prevent search engines from indexing archiveless
 	 * posts.
 	 */
-	public function on_wp_head() {
+	public function on_wp_head(): void {
 		if ( ! is_singular() || ! static::is() ) {
 			return;
 		}
