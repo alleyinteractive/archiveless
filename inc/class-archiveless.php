@@ -67,6 +67,10 @@ class Archiveless {
 		add_action( 'save_post', [ $this, 'save_post' ] );
 		add_action( 'wp_head', [ $this, 'on_wp_head' ] );
 
+		// Third-party plugin support.
+		add_filter( 'ep_indexable_post_status', [ $this, 'filter__elasticsearch_indexable_post_statuses' ] );
+		add_filter( 'sp_config_sync_statuses', [ $this, 'filter__elasticsearch_indexable_post_statuses' ] );
+
 		if ( is_admin() ) {
 			add_action( 'post_submitbox_misc_actions', [ $this, 'add_ui' ] );
 			add_action( 'add_meta_boxes', [ $this, 'fool_edit_form' ] );
@@ -74,6 +78,18 @@ class Archiveless {
 			// Later priority to mirror the previous use of posts_where.
 			add_action( 'pre_get_posts', [ $this, 'on_pre_get_posts' ], 20 );
 		}
+	}
+
+	/**
+	 * Add the `archiveless` post status to the list of indexable post statuses.
+	 *
+	 * @see <https://github.com/alleyinteractive/archiveless/issues/62>
+	 *
+	 * @param string[] $post_statuses The list of indexable post statuses.
+	 * @return string[]
+	 */
+	public function filter__elasticsearch_indexable_post_statuses( $post_statuses ): array {
+		return array_unique( array_merge( $post_statuses, [ self::$status ] ) );
 	}
 
 	/**
