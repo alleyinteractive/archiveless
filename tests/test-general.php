@@ -322,6 +322,23 @@ class Test_General extends Test_Case {
 		$this->assertEquals( 'archiveless', get_post_status( $post_id ) );
 	}
 
+	public function test_post_meta_applied_when_manually_created() {
+		$post_id = static::factory()->post->create();
+
+		$this->assertEmpty( get_post_meta( $post_id, 'archiveless', true ) );
+
+		wp_update_post(
+			[
+				'ID'          => $post_id,
+				'post_status' => 'archiveless',
+			],
+			true,
+		);
+
+		$this->assertEquals( 'archiveless', get_post_status( $post_id ) );
+		$this->assertEquals( '1', get_post_meta( $post_id, 'archiveless', true ) );
+	}
+
 	public function test_post_preview() {
 		$post_id = static::factory()->post->create(
 			[
