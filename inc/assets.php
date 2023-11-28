@@ -68,15 +68,23 @@ function get_asset_dependencies( string $asset ): array {
 }
 
 /**
+ * Get the asset map.
+ *
+ * @return array<string, array<string, array<string, string>>> The asset map.
+ */
+function get_asset_map(): array {
+	// @phpstan-ignore-next-line return
+	return ARCHIVELESS_ASSET_MAP;
+}
+
+/**
  * Get the contentHash for a given asset.
  *
  * @param string $asset Entry point and asset type separated by a '.'.
  * @return string The asset's hash.
  */
 function get_asset_hash( string $asset ): string {
-	return get_asset_property( $asset, 'hash' )
-		?? ARCHIVELESS_ASSET_MAP['hash']
-		?? '1.0.0';
+	return get_asset_property( $asset, 'hash' ) ?? '1.0.0';
 }
 
 /**
@@ -115,7 +123,7 @@ function get_asset_property( string $asset, string $prop ): ?string {
 	 */
 	list( $entrypoint, $type ) = explode( '.', "$asset." );
 
-	return ARCHIVELESS_ASSET_MAP[ $entrypoint ][ $type ][ $prop ] ?? null;
+	return get_asset_map()[ $entrypoint ][ $type ][ $prop ] ?? null;
 }
 
 /**

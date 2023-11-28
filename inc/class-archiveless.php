@@ -205,7 +205,7 @@ class Archiveless {
 	 * @param int    $meta_id     ID of updated metadata entry.
 	 * @param int    $object_id   ID of the object metadata is for.
 	 * @param string $meta_key    Metadata key.
-	 * @param mixed  $meta_value Metadata value. Serialized if non-scalar.
+	 * @param string $meta_value Metadata value. Serialized if non-scalar.
 	 */
 	public function updated_post_meta( $meta_id, $object_id, $meta_key, $meta_value ): void {
 		// Only handle updates to this plugin's meta key.
@@ -241,7 +241,12 @@ class Archiveless {
 		}
 
 		// Update the post with the new status.
-		wp_update_post( $post_object );
+		wp_update_post(
+			[
+				'ID'          => $object_id,
+				'post_status' => $post_object->post_status,
+			]
+		);
 	}
 
 	/**
@@ -260,9 +265,9 @@ class Archiveless {
 	/**
 	 * Filter the REST API query, with the edit context, to include archiveless posts.
 	 *
-	 * @param array           $args    Array of arguments for WP_Query.
-	 * @param WP_REST_Request $request The REST API request.
-	 * @return array
+	 * @param array<mixed>                   $args    Array of arguments for WP_Query.
+	 * @param WP_REST_Request<array<string>> $request The REST API request.
+	 * @return array<mixed>
 	 */
 	public function filter__rest_post_type_query( $args, $request ): array {
 		/**
@@ -294,7 +299,7 @@ class Archiveless {
 	 */
 	public function filter__rest_prepare_post_data( $response ) {
 		// Override the post status if it is 'archiveless'.
-		if ( ! empty( $response->data['status'] ) && self::$status === $response->data['status'] ) {
+		if ( is_array( $response->data ) && ! empty( $response->data['status'] ) && self::$status === $response->data['status'] ) {
 			$response->data['status'] = 'publish';
 		}
 
@@ -315,14 +320,22 @@ class Archiveless {
 		}
 
 		// Only fire if archiveless postmeta is set to true.
-		if ( 1 !== (int) get_post_meta( $post->ID, self::$meta_key, true ) ) {
+		if ( empty( get_post_meta( $post->ID, self::$meta_key, true ) ) ) {
 			return;
 		}
 
-		// Change the post status to `archiveless` and update.
-		$post->post_status = self::$status;
+		// Prevent updating if the post status is already `archiveless`.
+		if ( self::$status === $post->post_status ) {
+			return;
+		}
 
-		wp_update_post( $post );
+		// Update the post's status to `archiveless`.
+		wp_update_post(
+			[
+				'ID'          => $post->ID,
+				'post_status' => self::$status,
+			]
+		);
 	}
 
 	/**
@@ -335,6 +348,10 @@ class Archiveless {
 		if ( isset( $_POST[ self::$meta_key ] ) ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			update_post_meta( $post_id, self::$meta_key, intval( $_POST[ self::$meta_key ] ) );
+		} elseif ( static::$status === get_post_status( $post_id ) ) {
+			// If the post status is `archiveless`, ensure the post's
+			// archiveless meta is set to true.
+			update_post_meta( $post_id, self::$meta_key, 1 );
 		}
 	}
 
@@ -437,7 +454,7 @@ class Archiveless {
 		$post_statuses = $query->get( 'post_status', [] );
 
 		if ( ! is_array( $post_statuses ) ) {
-			$post_statuses = explode( ',', $post_statuses );
+			$post_statuses = is_string( $post_statuses ) ? explode( ',', $post_statuses ) : [];
 		}
 
 		$post_statuses = array_merge(
