@@ -1,9 +1,9 @@
 <?php
 
 use Mantle\Testing\Concerns\Admin_Screen;
-use Mantle\Testkit\Test_Case;
+use Mantle\Testkit\TestCase;
 
-class SettingsTest extends Test_Case {
+class SettingsTest extends TestCase {
 	use Admin_Screen;
 
 	public function test_is_block_editor() {

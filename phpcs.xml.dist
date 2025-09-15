@@ -3,7 +3,9 @@
   <description>PHP_CodeSniffer standard for archiveless.</description>
 
   <!-- Include Alley Rules -->
-  <rule ref="Alley-Interactive" />
+  <rule ref="Alley-Interactive">
+    <exclude-pattern>tests/</exclude-pattern>
+  </rule>
 
   <!--
   Pass some flags to PHPCS:
