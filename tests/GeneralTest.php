@@ -13,7 +13,7 @@ use Mantle\Testkit\Test_Case;
 /**
  * General Test Case
  */
-class Test_General extends Test_Case {
+class GeneralTest extends Test_Case {
 	use Refresh_Database;
 
 	protected $archiveless_post;
@@ -255,7 +255,7 @@ class Test_General extends Test_Case {
 		$this->assertTrue( $conditional(), "Asserting that {$conditional}() is true" );
 	}
 
-	public function inaccessible() {
+	public static function inaccessible() {
 		return [
 			[ '/', 'is_home' ], // Homepage.
 			[ '/2015/01/', 'is_date' ], // Date archive.
