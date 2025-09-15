@@ -40,8 +40,10 @@ jobs:
 
       - name: Run Node Tests
         # See https://github.com/alleyinteractive/action-test-node for more options.
-        # Defaults to the latest LTS version.
+        # Explicitly use Node 22 to match package.json engines
         uses: alleyinteractive/action-test-node@develop
+        with:
+          node-version: '22'
 
       - name: Run PHP Tests
         # See https://github.com/alleyinteractive/action-test-php for more options
