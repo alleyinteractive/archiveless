@@ -9,7 +9,7 @@
  * License: GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Tested up to: 6.4
- * Requires PHP: 8.0
+ * Requires PHP: 8.2
  *
  * @package Archiveless
  *
