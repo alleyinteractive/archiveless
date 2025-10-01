@@ -3,7 +3,7 @@
  * Plugin Name: Archiveless
  * Plugin URI: https://github.com/alleyinteractive/archiveless
  * Description: Hide posts from archives performantly
- * Version: 1.1.1
+ * Version: 1.2.0
  * Author: Alley Interactive
  * Author URI: https://alley.com/
  *

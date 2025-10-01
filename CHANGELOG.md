@@ -2,6 +2,26 @@
 
 All notable changes to this plugin will be documented in this file.
 
+## v1.2.0
+
+- No changes, just a refactor to use TypeScript and the latest standards from
+  Alley's `create-wordpress-plugin` package. Admin entry was renamed but the
+  functionality remains the same.
+
+## v1.1.1
+
+- Fix unit tests and ensure that tests pass with twentytwentythree.
+- Change visibility of post stati in query.
+
+## v1.1.0
+
+- Ensure that when `any` is passed as the `post_status` that archiveless does
+  not modify the query. The query should return archiveless posts normally then
+  with an unmodified query.
+- Call out that `get_posts()` calls will not have archiveless posts returned by
+  default. This logic in the plugin broke backward compatibility with some
+  existing plugin use.
+
 ## 1.0.1
 
 - Bug fix from previous use of the archiveless plugin that broke backwards
