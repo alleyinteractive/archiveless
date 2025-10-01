@@ -1,16 +1,15 @@
 {
-  "name": "create-wordpress-plugin",
+  "name": "archiveless",
   "license": "GPL-2.0-or-later",
-  "main": "plugin.php",
+  "main": "archiveless.php",
   "engines": {
     "node": "22",
     "npm": "10"
   },
   "scripts": {
     "build": "alley-build build",
-    "create-block": "npx @alleyinteractive/create-block@latest -n create-wordpress-plugin",
-    "create-entry": "npx @alleyinteractive/create-entry@latest -n create-wordpress-plugin -t create-wordpress-plugin",
-    "create-slotfill": "npx @alleyinteractive/create-entry -s -n create-wordpress-plugin -t create-wordpress-plugin",
+    "create-entry": "npx @alleyinteractive/create-entry@latest -n archiveless -t archiveless",
+    "create-slotfill": "npx @alleyinteractive/create-entry -s -n archiveless -t archiveless",
     "check-types": "tsc --noEmit",
     "eslint": "eslint --ext .jsx --ext .js --ext .ts --ext .tsx .",
     "eslint:fix": "eslint --ext .jsx --ext .js --ext .ts --ext .tsx . --fix",
