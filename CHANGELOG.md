@@ -4,8 +4,9 @@ All notable changes to this plugin will be documented in this file.
 
 ## v1.2.0
 
-- No changes, just a refactor to use TypeScript and the latest standards from
-  Alley's `create-wordpress-plugin` package. Admin entry was renamed but the
+- Bump PHP requirement to 8.2.
+- Refactor to use TypeScript and the latest standards from Alley's
+  `create-wordpress-plugin` package. Admin entry was renamed but the
   functionality remains the same.
 
 ## v1.1.1
