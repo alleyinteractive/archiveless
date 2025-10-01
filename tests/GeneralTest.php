@@ -257,11 +257,11 @@ class GeneralTest extends Test_Case {
 
 	public static function inaccessible() {
 		return [
-			[ '/', 'is_home' ], // Homepage.
-			[ '/2015/01/', 'is_date' ], // Date archive.
-			[ '/category/archives/', 'is_category' ], // Tax archive.
-			[ '/author/test_author/', 'is_author' ], // Author archive.
-			[ '/?s=Lorem+ipsum', 'is_search' ], // Search.
+			'Homepage' => [ '/', 'is_home' ],
+			'Date archive' => [ '/2015/01/', 'is_date' ],
+			'Tax archive' => [ '/category/archives/', 'is_category' ],
+			'Author archive' => [ '/author/test_author/', 'is_author' ],
+			'Search' => [ '/?s=Lorem+ipsum', 'is_search' ],
 		];
 	}
 
