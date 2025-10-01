@@ -483,9 +483,9 @@ class Archiveless {
 		/**
 		 * Filter whether to output the noindex meta tag.
 		 */
-		// if ( false === apply_filters( 'archiveless_output_noindex', true ) ) {
-		// 	return;
-		// }
+		if ( false === apply_filters( 'archiveless_output_noindex', true ) ) {
+			return;
+		}
 
 		echo '<meta name="robots" content="noindex,nofollow" />';
 	}
