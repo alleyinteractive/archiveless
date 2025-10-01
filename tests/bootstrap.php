@@ -6,6 +6,6 @@
  */
 
 \Mantle\Testing\manager()
-	->theme( 'twentytwenty' )
+	->theme( 'twentytwentythree' )
 	->loaded( fn () => require_once __DIR__ . '/../archiveless.php' )
 	->install();
