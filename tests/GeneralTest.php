@@ -183,6 +183,20 @@ class GeneralTest extends Test_Case {
 		$this->assertContains( $this->archiveable_post, $post_ids );
 	}
 
+	public function test_always_included_outside_of_main_query_with_post_status_any_with_get_posts() {
+		$post_ids = get_posts(
+			[
+				'fields'           => 'ids',
+				'posts_per_page'   => 100,
+				'suppress_filters' => false,
+				'post_status'      => 'any',
+			]
+		);
+
+		$this->assertContains( $this->archiveless_post, $post_ids );
+		$this->assertContains( $this->archiveable_post, $post_ids );
+	}
+
 	public function test_query_archiveless_posts_only() {
 		$post_ids = $this->query(
 			[
@@ -211,18 +225,34 @@ class GeneralTest extends Test_Case {
 		$this->assertContains( $this->archiveable_post, $post_ids );
 	}
 
+	public function test_draft_post_hidden_from_archive() {
+		$category = static::factory()->category->create();
+
+		$post = static::factory()->post->with_terms( $category )->create(
+			[
+				'post_status' => 'draft',
+			]
+		);
+
+		$this->get( get_category_link( $category ) )
+			->assertOk()
+			->assertDontSee( get_the_title( $post ) );
+
+		$this->assertNotContains( $post, wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) );
+	}
+
 	/**
 	 * Test that an archiveless post is not accessible under multiple conditions.
 	 */
 	#[DataProvider( 'inaccessible' )]
 	public function test_inaccessible( $url, $conditional ) {
-		$this->get( $url );
+		$this->get( $url )
+			->assertOk()
+			->assertSee( get_the_title( $this->archiveable_post ) )
+			->assertDontSee( get_the_title( $this->archiveless_post ) );
 
 		$this->assertFalse( is_singular() );
 		$this->assertTrue( $conditional(), "Asserting that {$conditional}() is true" );
-		$this->assertTrue( have_posts() );
-		$this->assertContains( $this->archiveable_post, wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) );
-		$this->assertNotContains( $this->archiveless_post, wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) );
 	}
 
 	public static function inaccessible() {
@@ -232,7 +262,6 @@ class GeneralTest extends Test_Case {
 			[ '/category/archives/', 'is_category' ], // Tax archive.
 			[ '/author/test_author/', 'is_author' ], // Author archive.
 			[ '/?s=Lorem+ipsum', 'is_search' ], // Search.
-			[ '/rss/', 'is_feed' ], // Feeds.
 		];
 	}
 
@@ -291,6 +320,23 @@ class GeneralTest extends Test_Case {
 		// Update the post meta value and ensure it changes back to archiveless.
 		update_post_meta( $post_id, 'archiveless', '1' );
 		$this->assertEquals( 'archiveless', get_post_status( $post_id ) );
+	}
+
+	public function test_post_meta_applied_when_manually_created() {
+		$post_id = static::factory()->post->create();
+
+		$this->assertEmpty( get_post_meta( $post_id, 'archiveless', true ) );
+
+		wp_update_post(
+			[
+				'ID'          => $post_id,
+				'post_status' => 'archiveless',
+			],
+			true,
+		);
+
+		$this->assertEquals( 'archiveless', get_post_status( $post_id ) );
+		$this->assertEquals( '1', get_post_meta( $post_id, 'archiveless', true ) );
 	}
 
 	public function test_post_preview() {

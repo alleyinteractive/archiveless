@@ -1,15 +1,15 @@
 {
     "name": "alleyinteractive/archiveless",
     "description": "WordPress plugin to hide posts from archives (lists)",
-    "homepage": "https://github.com/alleyinteractive/archiveless",
-    "type": "wordpress-plugin",
     "license": "GPL-3.0-or-later",
+    "type": "wordpress-plugin",
     "authors": [
         {
             "name": "Alley",
             "email": "info@alley.co"
         }
     ],
+    "homepage": "https://github.com/alleyinteractive/archiveless",
     "support": {
         "issues": "https://github.com/alleyinteractive/archiveless/issues",
         "source": "https://github.com/alleyinteractive/archiveless"
@@ -21,6 +21,8 @@
         "alleyinteractive/alley-coding-standards": "^1.0",
         "mantle-framework/testkit": "^1.6"
     },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "config": {
         "allow-plugins": {
             "alleyinteractive/composer-wordpress-autoloader": true,
@@ -28,8 +30,6 @@
         },
         "sort-packages": true
     },
-    "minimum-stability": "dev",
-    "prefer-stable": true,
     "scripts": {
         "phpcbf": "phpcbf .",
         "phpcs": "phpcs .",

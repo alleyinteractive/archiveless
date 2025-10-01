@@ -6,6 +6,7 @@
  * Version: 1.2.0
  * Author: Alley Interactive
  * Author URI: https://alley.com/
+ * Requires PHP: 8.2
  *
  * @package Archiveless
  *

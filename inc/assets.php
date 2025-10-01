@@ -5,6 +5,8 @@
  * @package Archiveless
  */
 
+declare(strict_types=1);
+
 namespace Archiveless;
 
 /**
