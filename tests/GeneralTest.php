@@ -9,11 +9,12 @@
 
 use Mantle\Testing\Concerns\Refresh_Database;
 use Mantle\Testkit\Test_Case;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * General Test Case
  */
-class Test_General extends Test_Case {
+class GeneralTest extends Test_Case {
 	use Refresh_Database;
 
 	protected $archiveless_post;
@@ -212,9 +213,8 @@ class Test_General extends Test_Case {
 
 	/**
 	 * Test that an archiveless post is not accessible under multiple conditions.
-	 *
-	 * @dataProvider inaccessible
 	 */
+	#[DataProvider( 'inaccessible' )]
 	public function test_inaccessible( $url, $conditional ) {
 		$this->get( $url );
 
@@ -225,7 +225,7 @@ class Test_General extends Test_Case {
 		$this->assertNotContains( $this->archiveless_post, wp_list_pluck( $GLOBALS['wp_query']->posts, 'ID' ) );
 	}
 
-	public function inaccessible() {
+	public static function inaccessible() {
 		return [
 			[ '/', 'is_home' ], // Homepage.
 			[ '/2015/01/', 'is_date' ], // Date archive.

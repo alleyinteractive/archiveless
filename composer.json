@@ -14,9 +14,12 @@
         "issues": "https://github.com/alleyinteractive/archiveless/issues",
         "source": "https://github.com/alleyinteractive/archiveless"
     },
+    "require": {
+        "php": ">=8.2"
+    },
     "require-dev": {
-        "alleyinteractive/alley-coding-standards": "^0.3",
-        "mantle-framework/testkit": "^0.5"
+        "alleyinteractive/alley-coding-standards": "^1.0",
+        "mantle-framework/testkit": "^1.6"
     },
     "config": {
         "allow-plugins": {
@@ -31,6 +34,7 @@
         "phpcbf": "phpcbf .",
         "phpcs": "phpcs .",
         "phpunit": "phpunit",
+        "release": "npx @alleyinteractive/create-release@latest",
         "test": [
             "@phpcs",
             "@phpunit"
