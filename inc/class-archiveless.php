@@ -348,7 +348,7 @@ class Archiveless {
 		if ( isset( $_POST[ self::$meta_key ] ) ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing
 			update_post_meta( $post_id, self::$meta_key, intval( $_POST[ self::$meta_key ] ) );
-		} elseif ( static::$status === get_post_status( $post_id ) ) {
+		} elseif ( static::$status === get_post_status( $post_id ) ) { // phpcs:ignore WordPress.PHP.YodaConditions.NotYoda
 			// If the post status is `archiveless`, ensure the post's
 			// archiveless meta is set to true.
 			update_post_meta( $post_id, self::$meta_key, 1 );
