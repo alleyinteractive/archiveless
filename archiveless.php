@@ -3,9 +3,9 @@
  * Plugin Name: Archiveless
  * Plugin URI: https://github.com/alleyinteractive/archiveless
  * Description: Hide posts from archives performantly
- * Version: 0.1
+ * Version: 1.1.1
  * Author: Alley Interactive
- * Author URI: https://alley.co/
+ * Author URI: https://alley.com/
  *
  * @package Archiveless
  *
@@ -24,9 +24,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-// Include Archiveless class.
 require_once __DIR__ . '/inc/assets.php';
 require_once __DIR__ . '/inc/class-archiveless.php';
 
-// Add action hook to initialize the plugin.
 add_action( 'after_setup_theme', [ 'Archiveless', 'instance' ] );

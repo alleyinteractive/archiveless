@@ -1,7 +1,6 @@
 # Archiveless
 
-[![Testing
-Suite](https://github.com/alleyinteractive/archiveless/actions/workflows/unit-test.yml/badge.svg)](https://github.com/alleyinteractive/archiveless/actions/workflows/unit-test.yml)
+[![Testing Suite](https://github.com/alleyinteractive/archiveless/actions/workflows/all-pr-tests.yml/badge.svg?branch=develop)](https://github.com/alleyinteractive/create-wordpress-plugin/actions/workflows/all-pr-tests.yml)
 
 Excludes specific WordPress posts from archives (homepage, search,
 date/author/term archives).
@@ -81,7 +80,7 @@ recently.
 
 This project is actively maintained by [Alley
 Interactive](https://github.com/alleyinteractive). Like what you see? [Come work
-with us](https://alley.co/careers/).
+with us](https://alley.com/careers/).
 
 ![Alley logo](https://avatars.githubusercontent.com/u/1733454?s=200&v=4)
 
