@@ -13,7 +13,7 @@ function ArchivelessToggle() {
   return (
     <PluginPostStatusInfo>
       <ToggleControl
-        label={__('Hide from sss', 'archiveless')}
+        label={__('Hide from Archives', 'archiveless')}
         checked={archiveless}
         onChange={(value) => setArchiveless(value)}
       />
