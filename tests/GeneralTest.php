@@ -9,11 +9,12 @@
 
 use Mantle\Testing\Concerns\Refresh_Database;
 use Mantle\Testkit\Test_Case;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * General Test Case
  */
-class Test_General extends Test_Case {
+class GeneralTest extends Test_Case {
 	use Refresh_Database;
 
 	protected $archiveless_post;
@@ -242,9 +243,8 @@ class Test_General extends Test_Case {
 
 	/**
 	 * Test that an archiveless post is not accessible under multiple conditions.
-	 *
-	 * @dataProvider inaccessible
 	 */
+	#[DataProvider( 'dataprovider_inaccessible' )]
 	public function test_inaccessible( $url, $conditional ) {
 		$this->get( $url )
 			->assertOk()
@@ -255,13 +255,13 @@ class Test_General extends Test_Case {
 		$this->assertTrue( $conditional(), "Asserting that {$conditional}() is true" );
 	}
 
-	public function inaccessible() {
+	public static function dataprovider_inaccessible() {
 		return [
-			[ '/', 'is_home' ], // Homepage.
-			[ '/2015/01/', 'is_date' ], // Date archive.
-			[ '/category/archives/', 'is_category' ], // Tax archive.
-			[ '/author/test_author/', 'is_author' ], // Author archive.
-			[ '/?s=Lorem+ipsum', 'is_search' ], // Search.
+			'Homepage'       => [ '/', 'is_home' ],
+			'Date archive'   => [ '/2015/01/', 'is_date' ],
+			'Tax archive'    => [ '/category/archives/', 'is_category' ],
+			'Author archive' => [ '/author/test_author/', 'is_author' ],
+			'Search'         => [ '/?s=Lorem+ipsum', 'is_search' ],
 		];
 	}
 

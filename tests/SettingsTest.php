@@ -3,7 +3,7 @@
 use Mantle\Testing\Concerns\Admin_Screen;
 use Mantle\Testkit\Test_Case;
 
-class Test_Settings extends Test_Case {
+class SettingsTest extends Test_Case {
 	use Admin_Screen;
 
 	public function test_is_block_editor() {

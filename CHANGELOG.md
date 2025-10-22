@@ -2,25 +2,26 @@
 
 All notable changes to this plugin will be documented in this file.
 
-## 1.1.2
+## v1.2.0
 
-- Github Action: Updated matrix to test the following PHP versions: 8.0, 8.1, and 8.2;
-- Added `.editorconfig`;
-- Composer: upgraded packages;
-- PHPStan: added support;
-- Bumped the plugin version from `0.2` to `1.1.2`;
-- Tested the plugin with the WordPress 6.4;
-- Use `declare(strict_types=1);`, when possible;
-- Update Alley domain to `https://alley.com`;
+- Bump PHP requirement to 8.2.
+- Refactor to use TypeScript and the latest standards from Alley's
+  `create-wordpress-plugin` package. Admin entry was renamed but the
+  functionality remains the same.
 
+## v1.1.1
 
-## 1.1.1
+- Fix unit tests and ensure that tests pass with twentytwentythree.
+- Change visibility of post stati in query.
 
-- See <https://github.com/alleyinteractive/archiveless/releases/tag/v1.1.1>
+## v1.1.0
 
-### 1.1.0
-
-- See <https://github.com/alleyinteractive/archiveless/releases/tag/v1.1.0>
+- Ensure that when `any` is passed as the `post_status` that archiveless does
+  not modify the query. The query should return archiveless posts normally then
+  with an unmodified query.
+- Call out that `get_posts()` calls will not have archiveless posts returned by
+  default. This logic in the plugin broke backward compatibility with some
+  existing plugin use.
 
 ## 1.0.1
 

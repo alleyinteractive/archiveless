@@ -6,13 +6,6 @@
  */
 
 \Mantle\Testing\manager()
-	->maybe_rsync_plugin()
-	->loaded(
-		function () {
-			// Set the permalink structure.
-			update_option( 'permalink_structure', '/%year%/%monthnum%/%day%/%postname%/' );
-
-			require_once __DIR__ . '/../archiveless.php';
-		}
-	)
+	->theme( 'twentytwentythree' )
+	->loaded( fn () => require_once __DIR__ . '/../archiveless.php' )
 	->install();

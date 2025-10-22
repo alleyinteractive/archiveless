@@ -1,48 +1,43 @@
 {
-  "name": "alleyinteractive/archiveless",
-  "description": "WordPress plugin to hide posts from archives (lists)",
-  "keywords": [
-    "alleyinteractive",
-    "archive",
-    "archiveless"
-  ],
-  "homepage": "https://github.com/alleyinteractive/archiveless",
-  "type": "wordpress-plugin",
-  "license": "GPL-3.0-or-later",
-  "authors": [
-    {
-      "name": "Alley Interactive",
-      "email": "info@alley.com"
-    }
-  ],
-  "support": {
-    "issues": "https://github.com/alleyinteractive/archiveless/issues",
-    "source": "https://github.com/alleyinteractive/archiveless"
-  },
-  "require-dev": {
-    "php": "^8.0",
-    "alleyinteractive/alley-coding-standards": "^2.0",
-    "mantle-framework/testkit": "^0.12",
-    "szepeviktor/phpstan-wordpress": "^1.1"
-  },
-  "config": {
-    "allow-plugins": {
-      "alleyinteractive/composer-wordpress-autoloader": true,
-      "dealerdirect/phpcodesniffer-composer-installer": true
+    "name": "alleyinteractive/archiveless",
+    "description": "WordPress plugin to hide posts from archives (lists)",
+    "license": "GPL-3.0-or-later",
+    "type": "wordpress-plugin",
+    "authors": [
+        {
+            "name": "Alley",
+            "email": "info@alley.co"
+        }
+    ],
+    "homepage": "https://github.com/alleyinteractive/archiveless",
+    "support": {
+        "issues": "https://github.com/alleyinteractive/archiveless/issues",
+        "source": "https://github.com/alleyinteractive/archiveless"
     },
-    "sort-packages": true
-  },
-  "minimum-stability": "dev",
-  "prefer-stable": true,
-  "scripts": {
-    "phpcbf": "phpcbf .",
-    "phpcs": "phpcs .",
-    "phpunit": "phpunit",
-    "phpstan": "phpstan --memory-limit=512M",
-    "test": [
-      "@phpcs",
-      "@phpstan",
-      "@phpunit"
-    ]
-  }
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "alleyinteractive/alley-coding-standards": "^2.0",
+        "mantle-framework/testkit": "^1.6"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "allow-plugins": {
+            "alleyinteractive/composer-wordpress-autoloader": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        },
+        "sort-packages": true
+    },
+    "scripts": {
+        "phpcbf": "phpcbf .",
+        "phpcs": "phpcs .",
+        "phpunit": "phpunit",
+        "release": "npx @alleyinteractive/create-release@latest",
+        "test": [
+            "@phpcs",
+            "@phpunit"
+        ]
+    }
 }
