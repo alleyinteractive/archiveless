@@ -244,7 +244,7 @@ class GeneralTest extends Test_Case {
 	/**
 	 * Test that an archiveless post is not accessible under multiple conditions.
 	 */
-	#[DataProvider( 'inaccessible' )]
+	#[DataProvider( 'dataprovider_inaccessible' )]
 	public function test_inaccessible( $url, $conditional ) {
 		$this->get( $url )
 			->assertOk()
@@ -255,7 +255,7 @@ class GeneralTest extends Test_Case {
 		$this->assertTrue( $conditional(), "Asserting that {$conditional}() is true" );
 	}
 
-	public static function inaccessible() {
+	public static function dataprovider_inaccessible() {
 		return [
 			'Homepage'       => [ '/', 'is_home' ],
 			'Date archive'   => [ '/2015/01/', 'is_date' ],

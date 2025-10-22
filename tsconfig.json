@@ -4,10 +4,7 @@
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "noImplicitAny": true,
-    "outDir": "build",
-    "paths": {
-      "@/*": ["*"]
-    }
+    "outDir": "build"
   },
   "exclude": [
     "vendor",
