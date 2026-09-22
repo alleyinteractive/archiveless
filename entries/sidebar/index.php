@@ -45,4 +45,4 @@ add_action( 'init', 'archiveless_register_plugin_scripts' );
 function archiveless_enqueue_plugin(): void {
 	wp_enqueue_script( 'archiveless-sidebar-js' );
 }
-add_action( 'enqueue_block_assets', 'archiveless_enqueue_plugin' );
+add_action( 'enqueue_block_editor_assets', 'archiveless_enqueue_plugin' );
