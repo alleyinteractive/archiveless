@@ -115,7 +115,7 @@ class GeneralTest extends Test_Case {
 		$post_ids = $this->query(
 			[
 				'fields'           => 'ids',
-				'posts_per_page'   => -1,
+				'posts_per_page'   => 100,
 				'suppress_filters' => false,
 			]
 		);
@@ -132,7 +132,7 @@ class GeneralTest extends Test_Case {
 		$post_ids = get_posts(
 			[
 				'fields'           => 'ids',
-				'posts_per_page'   => -1,
+				'posts_per_page'   => 100,
 				'suppress_filters' => false,
 			]
 		);
@@ -146,7 +146,7 @@ class GeneralTest extends Test_Case {
 			[
 				'fields'           => 'ids',
 				'post_status'      => [ 'archiveless', 'publish' ],
-				'posts_per_page'   => -1,
+				'posts_per_page'   => 100,
 				'suppress_filters' => false,
 			]
 		);
@@ -160,7 +160,7 @@ class GeneralTest extends Test_Case {
 			[
 				'fields'              => 'ids',
 				'include_archiveless' => true,
-				'posts_per_page'      => -1,
+				'posts_per_page'      => 100,
 				'suppress_filters'    => false,
 			]
 		);
