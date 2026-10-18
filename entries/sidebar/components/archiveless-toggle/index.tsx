@@ -14,6 +14,11 @@ function ArchivelessToggle() {
     <PluginPostStatusInfo>
       <ToggleControl
         label={__('Hide from Archives', 'archiveless')}
+        help={
+          archiveless
+            ? __('Hide from homepage, search, and archive pages. Show on the post permalink.', 'archiveless')
+            : null
+        }
         checked={archiveless}
         onChange={setArchiveless}
       />
