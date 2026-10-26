@@ -2,6 +2,12 @@
 
 All notable changes to this plugin will be documented in this file.
 
+## v1.2.1
+
+- Only load the admin sidebar script in the block editor. Previously it was
+  enqueued on `enqueue_block_assets`, so it also loaded on the front end.
+- Update `source-map-js` to 1.2.2 to resolve a high severity `npm audit` issue.
+
 ## v1.2.0
 
 - Bump PHP requirement to 8.2.
